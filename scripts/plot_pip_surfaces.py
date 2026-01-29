@@ -44,33 +44,48 @@ def load_pip_any(path, varname="node_P"):
         return np.array(f[name], dtype=np.float64).T
 
 
-def crop_trailing_nan_rows(P):
-    """Drop rows after the first all-NaN row."""
+def crop_longest_non_nan_block(P):
+    """Keep the longest contiguous block of steps with any non-NaN values."""
     if P.size == 0:
         return P
-    nan_rows = np.all(np.isnan(P), axis=1)
-    if not np.any(nan_rows):
-        return P
-    first_nan = int(np.argmax(nan_rows))
-    return P[:first_nan, :]
+
+    has_data = ~np.all(np.isnan(P), axis=1)
+    if not np.any(has_data):
+        return P[:0, :]
+
+    indices = np.flatnonzero(has_data)
+    starts = [indices[0]]
+    ends = []
+    for prev, curr in zip(indices[:-1], indices[1:]):
+        if curr != prev + 1:
+            ends.append(prev)
+            starts.append(curr)
+    ends.append(indices[-1])
+
+    lengths = [end - start + 1 for start, end in zip(starts, ends)]
+    best_idx = int(np.argmax(lengths))
+    start = starts[best_idx]
+    end = ends[best_idx]
+    return P[start : end + 1, :]
 
 
-def tilt_early(P, tau):
+def tilt_early(P, tau, clip_negative=True):
     """Multiply each step s by exp(-s/tau)."""
     P = np.array(P, dtype=np.float64)
     P = np.nan_to_num(P, nan=0.0, posinf=0.0, neginf=0.0)
-    P[P < 0] = 0.0
+    if clip_negative:
+        P[P < 0] = 0.0
     S = P.shape[0]
     s = np.arange(1, S + 1, dtype=np.float64)[:, None]
     W = np.exp(-s / float(tau))
     return P * W
 
 
-def get_tilt_peak_order_amplitude(P_raw, tau_factor=1 / 6):
+def get_tilt_peak_order_amplitude(P_raw, tau_factor=1 / 6, clip_negative=True):
     """Rank nodes by largest tilted peak (amplitude high, earlier tie-break)."""
     S, N = P_raw.shape
     tau = max(2.0, float(tau_factor) * S)
-    Pt = tilt_early(P_raw, tau=tau)
+    Pt = tilt_early(P_raw, tau=tau, clip_negative=clip_negative)
     peak_idx = np.argmax(Pt, axis=0)
     peak_amp = Pt[peak_idx, np.arange(N)]
     order = np.lexsort((peak_idx, -peak_amp))
@@ -166,22 +181,24 @@ def plot_heatmap_2d(mat, fname_out, labels=None):
     plt.close(fig)
 
 
-def plot_tauS6_for_set(mat_paths_set, out_root, tag="postHW", k=66):
+def plot_tauS6_for_set(mat_paths_set, out_root, tag="postHW", k=66, clip_negative=True):
     """Process .mat files with τ=S/6 and save 2D + 3D plots."""
     out_dir = os.path.join(out_root, f"tauS6_{tag}")
     os.makedirs(out_dir, exist_ok=True)
 
     for p in mat_paths_set:
         P_raw = load_pip_any(p)
-        P_raw = crop_trailing_nan_rows(P_raw)
+        P_raw = crop_longest_non_nan_block(P_raw)
         if P_raw.size == 0:
             continue
 
         S = P_raw.shape[0]
         tau = max(2.0, (1 / 6) * S)
-        display_mat = tilt_early(P_raw, tau=tau)
+        display_mat = tilt_early(P_raw, tau=tau, clip_negative=clip_negative)
 
-        order_nodes, pk_step, pk_amp = get_tilt_peak_order_amplitude(P_raw, tau_factor=1 / 6)
+        order_nodes, pk_step, pk_amp = get_tilt_peak_order_amplitude(
+            P_raw, tau_factor=1 / 6, clip_negative=clip_negative
+        )
         top_nodes = order_nodes[:k]
         labels = [(pk_step[n], n, pk_amp[n], i + 1) for i, n in enumerate(top_nodes)]
 
@@ -206,6 +223,11 @@ def main():
     parser.add_argument("--out-root", default=str(repo_root / "figures" / "pip_surfaces"))
     parser.add_argument("--tag", default="postHW")
     parser.add_argument("--k", type=int, default=66)
+    parser.add_argument(
+        "--no-clip-negative",
+        action="store_true",
+        help="Do not clip negative values to zero before plotting.",
+    )
     args = parser.parse_args()
 
     results_dir = args.results_dir or os.path.join(args.pip_root, "results_converge")
@@ -218,7 +240,13 @@ def main():
     if not mat_paths:
         raise FileNotFoundError(f"No *_ConvHW.mat files found in {results_dir}")
 
-    plot_tauS6_for_set(mat_paths, args.out_root, tag=args.tag, k=args.k)
+    plot_tauS6_for_set(
+        mat_paths,
+        args.out_root,
+        tag=args.tag,
+        k=args.k,
+        clip_negative=not args.no_clip_negative,
+    )
 
 
 if __name__ == "__main__":

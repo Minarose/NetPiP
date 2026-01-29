@@ -27,3 +27,8 @@ PY
 python3 "$NETPIP_ROOT/scripts/plot_pip_surfaces.py" \
   --pip-root "$PIP_ROOT" \
   --out-root "$NETPIP_ROOT/figures/pip_surfaces"
+
+python3 "$NETPIP_ROOT/scripts/plot_pip_surfaces.py" \
+  --pip-root "$PIP_ROOT" \
+  --out-root "$NETPIP_ROOT/figures/pip_surfaces_no_clip" \
+  --no-clip-negative
