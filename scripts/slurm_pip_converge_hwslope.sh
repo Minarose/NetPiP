@@ -22,8 +22,9 @@ export MKL_NUM_THREADS=1
 
 # ---------------- PATHS ----------------
 export PIP_ROOT=/hpf/projects/dkadis/ismail/NetPiP/data/PSI_broadband_MEG_mats
+export NETPIP_ROOT=/hpf/projects/dkadis/ismail/NetPiP
 SIF=/hpf/projects/imaginglab/matlab/imaging-lab_matlab_r2024b.sif
-SCRIPT=pip_converge_posthw5.m
+SCRIPT=$NETPIP_ROOT/scripts/pip_converge_posthw5.m
 
 # ---------------- SUBJECT SELECTION ----------------
 mapfile -t FILES < <(ls -1 $PIP_ROOT/*_broadband_psi_adj.mat | sort)
@@ -67,4 +68,5 @@ singularity exec \
     --env BASE_SEED=$BASE_SEED \
     --bind $SCRATCH_DIR:$SCRATCH_DIR \
     --bind $PIP_ROOT:$PIP_ROOT \
+    --bind $NETPIP_ROOT:$NETPIP_ROOT \
     $SIF matlab -batch "run('$SCRIPT');"
