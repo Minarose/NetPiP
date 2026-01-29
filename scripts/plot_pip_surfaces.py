@@ -18,6 +18,7 @@ except Exception:  # pragma: no cover - runtime dependency
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+from matplotlib.backends.backend_pdf import PdfPages
 
 
 def load_pip_any(path, varname="node_P"):
@@ -181,6 +182,32 @@ def plot_heatmap_2d(mat, fname_out, labels=None):
     plt.close(fig)
 
 
+def plot_heatmap_2d_on_ax(ax, mat, labels=None, vmin=None, vmax=None):
+    mat = np.nan_to_num(mat, nan=0.0, posinf=0.0, neginf=0.0)
+    im = ax.imshow(
+        mat.T,
+        aspect="auto",
+        origin="lower",
+        cmap="gist_heat_r",
+        vmin=vmin,
+        vmax=vmax,
+    )
+    ax.set_xlabel("Attack Step", fontsize=12)
+    ax.set_ylabel("Node Index", fontsize=12)
+    ax.tick_params(axis="x", labelsize=10)
+    ax.tick_params(axis="y", labelsize=10)
+
+    if labels:
+        for (s, n, z, r1) in labels:
+            ax.scatter(s, n, s=60, facecolors="none", edgecolors="k", linewidths=1.5)
+            ax.text(
+                s, n, str(r1),
+                ha="center", va="center", fontsize=10,
+                bbox=dict(boxstyle="circle,pad=0.25", fc="white", ec="none", alpha=0.9),
+            )
+    return im
+
+
 def plot_tauS6_for_set(mat_paths_set, out_root, tag="postHW", k=66, clip_negative=True):
     """Process .mat files with τ=S/6 and save 2D + 3D plots."""
     out_dir = os.path.join(out_root, f"tauS6_{tag}")
@@ -210,6 +237,83 @@ def plot_tauS6_for_set(mat_paths_set, out_root, tag="postHW", k=66, clip_negativ
         plot_heatmap_2d(display_mat, base + "_2D.png", labels=labels)
 
 
+def _map_subject_files(file_paths, suffix):
+    mapping = {}
+    for path in file_paths:
+        base = os.path.basename(path)
+        if not base.endswith(suffix):
+            continue
+        prefix = base.split("_")[0]
+        mapping[prefix] = path
+    return mapping
+
+
+def plot_tauS6_compare(old_dir, new_dir, out_root, tag="postHW", k=66):
+    """Compare old vs new PiP matrices as side-by-side 2D heatmaps."""
+    old_files = [
+        os.path.join(old_dir, f) for f in os.listdir(old_dir)
+        if f.endswith("participation_in_percolation.mat")
+    ]
+    new_files = [
+        os.path.join(new_dir, f) for f in os.listdir(new_dir)
+        if f.endswith("broadband_psi_adj_ConvHW.mat")
+    ]
+    old_map = _map_subject_files(old_files, "participation_in_percolation.mat")
+    new_map = _map_subject_files(new_files, "broadband_psi_adj_ConvHW.mat")
+
+    subjects = sorted(set(old_map.keys()) & set(new_map.keys()))
+    if not subjects:
+        raise FileNotFoundError("No overlapping subjects between old and new dirs.")
+
+    out_dir = os.path.join(out_root, f"tauS6_{tag}", "old_vs_new")
+    os.makedirs(out_dir, exist_ok=True)
+    pdf_path = os.path.join(out_dir, "old_vs_new_all_subjects.pdf")
+
+    with PdfPages(pdf_path) as pdf:
+        for prefix in subjects:
+            P_old = crop_longest_non_nan_block(
+                load_pip_any(old_map[prefix], varname="node_participation_at_percolation")
+            )
+            P_new = crop_longest_non_nan_block(
+                load_pip_any(new_map[prefix], varname="node_P")
+            )
+            if P_old.size == 0 or P_new.size == 0:
+                continue
+
+            tau_old = max(2.0, (1 / 6) * P_old.shape[0])
+            tau_new = max(2.0, (1 / 6) * P_new.shape[0])
+            disp_old = tilt_early(P_old, tau=tau_old, clip_negative=False)
+            disp_new = tilt_early(P_new, tau=tau_new, clip_negative=False)
+
+            order_old, pk_step_old, pk_amp_old = get_tilt_peak_order_amplitude(
+                P_old, tau_factor=1 / 6, clip_negative=False
+            )
+            order_new, pk_step_new, pk_amp_new = get_tilt_peak_order_amplitude(
+                P_new, tau_factor=1 / 6, clip_negative=False
+            )
+            labels_old = [(pk_step_old[n], n, pk_amp_old[n], i + 1) for i, n in enumerate(order_old[:k])]
+            labels_new = [(pk_step_new[n], n, pk_amp_new[n], i + 1) for i, n in enumerate(order_new[:k])]
+
+            vmin = float(np.nanmin([disp_old.min(), disp_new.min()]))
+            vmax = float(np.nanmax([disp_old.max(), disp_new.max()]))
+
+            fig, axes = plt.subplots(1, 2, figsize=(14, 6), sharey=True)
+            plot_heatmap_2d_on_ax(axes[0], disp_old, labels=labels_old, vmin=vmin, vmax=vmax)
+            axes[0].set_title(f"{prefix} old", fontsize=12)
+            im1 = plot_heatmap_2d_on_ax(axes[1], disp_new, labels=labels_new, vmin=vmin, vmax=vmax)
+            axes[1].set_title(f"{prefix} new", fontsize=12)
+
+            cbar = fig.colorbar(im1, ax=axes, shrink=0.8, pad=0.02)
+            cbar.set_label("Participation", fontsize=12, labelpad=10)
+            cbar.ax.tick_params(labelsize=10)
+
+            plt.tight_layout()
+            out_path = os.path.join(out_dir, f"{prefix}_old_vs_new_2D.png")
+            plt.savefig(out_path, dpi=300, bbox_inches="tight", pad_inches=0.1)
+            pdf.savefig(fig)
+            plt.close(fig)
+
+
 def main():
     repo_root = Path(__file__).resolve().parents[1]
     default_pip_root = os.environ.get(
@@ -228,6 +332,8 @@ def main():
         action="store_true",
         help="Do not clip negative values to zero before plotting.",
     )
+    parser.add_argument("--compare-old-dir", default=None)
+    parser.add_argument("--compare-new-dir", default=None)
     args = parser.parse_args()
 
     results_dir = args.results_dir or os.path.join(args.pip_root, "results_converge")
@@ -247,6 +353,11 @@ def main():
         k=args.k,
         clip_negative=not args.no_clip_negative,
     )
+
+    if args.compare_old_dir or args.compare_new_dir:
+        old_dir = args.compare_old_dir or os.path.join(repo_root, "results", "old", "PiP_matrices")
+        new_dir = args.compare_new_dir or os.path.join(args.pip_root, "results_converge")
+        plot_tauS6_compare(old_dir, new_dir, args.out_root, tag=args.tag, k=args.k)
 
 
 if __name__ == "__main__":
