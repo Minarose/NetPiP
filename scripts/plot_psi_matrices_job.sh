@@ -24,5 +24,5 @@ for mod in ['numpy','scipy','h5py','matplotlib']:
 PY
 
 python3 "$NETPIP_ROOT/scripts/plot_psi_matrices.py" \
-  --data-dir "$NETPIP_ROOT/data" \
+  --data-dir "$NETPIP_ROOT/data/PSI_broadband_MEG_mats" \
   --out-dir "$NETPIP_ROOT/figures/PSI_matrices"
