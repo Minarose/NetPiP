@@ -346,7 +346,7 @@ def main():
     mat_paths = sorted(
         os.path.join(results_dir, f)
         for f in os.listdir(results_dir)
-        if f.endswith("broadband_psi_adj_ConvHW.mat")
+        if f.endswith("_ConvHW.mat")
     )
     if args.include_prefix:
         mat_paths = [
