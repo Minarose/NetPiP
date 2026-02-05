@@ -328,6 +328,12 @@ def main():
     parser.add_argument("--tag", default="postHW")
     parser.add_argument("--k", type=int, default=66)
     parser.add_argument(
+        "--include-prefix",
+        nargs="+",
+        default=None,
+        help="Only plot files whose basename starts with one of these prefixes.",
+    )
+    parser.add_argument(
         "--no-clip-negative",
         action="store_true",
         help="Do not clip negative values to zero before plotting.",
@@ -342,6 +348,11 @@ def main():
         for f in os.listdir(results_dir)
         if f.endswith("broadband_psi_adj_ConvHW.mat")
     )
+    if args.include_prefix:
+        mat_paths = [
+            p for p in mat_paths
+            if os.path.basename(p).split("_")[0] in set(args.include_prefix)
+        ]
 
     if not mat_paths:
         raise FileNotFoundError(f"No *_ConvHW.mat files found in {results_dir}")
