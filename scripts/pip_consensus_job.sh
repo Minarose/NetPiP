@@ -29,4 +29,4 @@ python3 "$NETPIP_ROOT/scripts/pip_consensus_cluster.py" \
   --coords "$NETPIP_ROOT/data/MNI_66_coords.txt" \
   --out-results "$NETPIP_ROOT/results/consensus" \
   --out-figures "$NETPIP_ROOT/figures/consensus" \
-  --thresholds 0.25 0.5 0.75
+  --thresholds 0.05 0.10 0.20
