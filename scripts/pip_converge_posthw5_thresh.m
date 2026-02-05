@@ -187,15 +187,25 @@ while n_attacks < MAX_ATTACKS
     fprintf('    ✓ parfor done in %.2f min\n', toc(tchunk)/60);
 
     n_attacks = n_attacks + this_chunk;
+    counts_per_step = counts_per_step + uint64(accumarray(double(psteps), 1, [nNodes,1]));
 
     for a = 1:this_chunk
-        p = psteps(a);
-        counts_per_step(p) = counts_per_step(p) + 1;
-        part_counts(p,:) = part_counts(p,:) + uint64(hits_mat(a,:));
+        ps = double(psteps(a));
+        part_counts(ps,:) = part_counts(ps,:) + uint64(hits_mat(a,:));
+    end
+
+    node_P = zeros(nNodes, nNodes, 'double');
+    for p = 1:nNodes
+        c = double(counts_per_step(p));
+        if c > 0
+            node_P(p,:) = double(part_counts(p,:)) / c;
+        else
+            node_P(p,:) = NaN;
+        end
     end
 
     hw_mat = wilson_hw_matrix(part_counts, counts_per_step);
-    hw95 = mean(hw_mat(~isnan(hw_mat)));
+    hw95 = prctile(hw_mat(:), 95);
 
     attacks_hist(end+1,1) = n_attacks; %#ok<AGROW>
     hw95_hist(end+1,1)    = hw95;      %#ok<AGROW>
