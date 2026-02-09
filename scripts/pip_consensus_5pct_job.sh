@@ -31,4 +31,5 @@ python3 "$NETPIP_ROOT/scripts/pip_consensus_cluster.py" \
   --out-figures "$NETPIP_ROOT/figures/5percthresh_analysis/consensus" \
   --out-subject-figs "$NETPIP_ROOT/figures/5percthresh_analysis/consensus/subjects" \
   --thresholds 0.05 0.10 0.20 \
-  --exclude-attack-outliers
+  --exclude-attack-outliers \
+  --consensus-red-threshold 0.20

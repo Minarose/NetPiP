@@ -246,6 +246,26 @@ def plot_consensus_markers(coords, consensus, out_path, threshold=None, title=""
     ).savefig(out_path)
 
 
+def plot_consensus_red(coords, consensus, out_path, threshold, title=""):
+    if plotting is None:
+        raise RuntimeError("nilearn is required for plotting.")
+    mask = consensus >= threshold
+    coords = coords[mask]
+    if coords.size == 0:
+        return
+    plotting.plot_markers(
+        np.ones(coords.shape[0]),
+        coords,
+        node_size=40,
+        node_cmap="Reds",
+        node_vmin=0,
+        node_vmax=1,
+        display_mode="lzr",
+        colorbar=False,
+        title=title,
+    ).savefig(out_path)
+
+
 def plot_subject_critical_nodes(coords, crit_mask, out_path, title=""):
     if plotting is None:
         raise RuntimeError("nilearn is required for plotting.")
@@ -289,6 +309,12 @@ def main():
         nargs="+",
         type=float,
         default=[0.25, 0.5, 0.75],
+    )
+    parser.add_argument(
+        "--consensus-red-threshold",
+        type=float,
+        default=None,
+        help="Plot consensus nodes above this threshold in a single red color.",
     )
     parser.add_argument(
         "--out-subject-figs",
@@ -415,6 +441,19 @@ def main():
             os.path.join(args.out_figures, f"consensus_markers_gt_{thr:.2f}.png"),
             threshold=thr,
             title=f"PiP consensus (>= {thr:.2f})",
+        )
+
+    if args.consensus_red_threshold is not None:
+        out_path = os.path.join(
+            args.out_figures,
+            f"consensus_markers_red_ge_{args.consensus_red_threshold:.2f}.png",
+        )
+        plot_consensus_red(
+            coords,
+            consensus,
+            out_path,
+            threshold=args.consensus_red_threshold,
+            title=f"PiP consensus (>= {args.consensus_red_threshold:.2f})",
         )
 
     if args.out_subject_figs is not None:

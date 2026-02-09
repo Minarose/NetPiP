@@ -171,6 +171,7 @@ def main():
         fmt="%d",
         delimiter=",",
     )
+    print("Top cluster node indices:", ", ".join(str(i) for i in np.where(top_mask)[0]))
 
     plotting.plot_markers(
         np.ones(int(top_mask.sum())),

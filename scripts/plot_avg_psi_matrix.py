@@ -68,14 +68,42 @@ def main():
         default=str(repo_root / "figures" / "avg_psi"),
     )
     parser.add_argument("--cmap", default="magma")
+    parser.add_argument(
+        "--out-prefix",
+        default=None,
+        help="Optional output filename prefix (without extension).",
+    )
     args = parser.parse_args()
 
     avg = load_mat_any(args.avg_mat, varname="avg_psi_adj")
     thr = load_mat_any(args.avg_mat, varname="psi_adj")
+    try:
+        threshold_prop = float(load_mat_any(args.avg_mat, varname="threshold_prop"))
+    except Exception:
+        threshold_prop = None
 
     os.makedirs(args.out_dir, exist_ok=True)
-    plot_matrix(avg, os.path.join(args.out_dir, "avg_psi_adj.png"), "Average PSI (raw)", cmap=args.cmap)
-    plot_matrix(thr, os.path.join(args.out_dir, "avg_psi_adj_top10.png"), "Average PSI (top 10%)", cmap=args.cmap)
+    base = args.out_prefix
+    if base is None:
+        base = os.path.splitext(os.path.basename(args.avg_mat))[0]
+    plot_matrix(
+        avg,
+        os.path.join(args.out_dir, f"{base}_avg_psi_adj.png"),
+        "Average PSI (raw)",
+        cmap=args.cmap,
+    )
+    if threshold_prop is None:
+        thr_title = "Average PSI (thresholded)"
+        thr_suffix = "thr"
+    else:
+        thr_title = f"Average PSI (top {threshold_prop * 100:.0f}%)"
+        thr_suffix = f"top{threshold_prop * 100:.0f}"
+    plot_matrix(
+        thr,
+        os.path.join(args.out_dir, f"{base}_avg_psi_adj_{thr_suffix}.png"),
+        thr_title,
+        cmap=args.cmap,
+    )
 
 
 if __name__ == "__main__":
