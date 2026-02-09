@@ -49,6 +49,36 @@ def _to_last_float(x):
     return None
 
 
+def _h5_resolve(f, data):
+    if isinstance(data, h5py.Reference):
+        return f[data][()]
+    if isinstance(data, np.ndarray) and data.dtype == h5py.ref_dtype:
+        resolved = [f[ref][()] for ref in data.ravel()]
+        return np.array(resolved, dtype=object)
+    if isinstance(data, np.ndarray) and data.dtype == object:
+        resolved = [
+            f[ref][()] if isinstance(ref, h5py.Reference) else ref
+            for ref in data.ravel()
+        ]
+        return np.array(resolved, dtype=object)
+    return data
+
+
+def _h5_get_meta_field(f, meta, key):
+    if meta is None or h5py is None:
+        return None
+    if isinstance(meta, h5py.Group):
+        if key not in meta:
+            return None
+        data = meta[key][()]
+        return _h5_resolve(f, data)
+    if isinstance(meta, h5py.Dataset):
+        if meta.dtype.names and key in meta.dtype.names:
+            data = meta[key][()]
+            return _h5_resolve(f, data)
+    return None
+
+
 def load_meta(path):
     if sio is not None:
         try:
@@ -62,12 +92,12 @@ def load_meta(path):
         return f.get("meta")
 
 
-def get_value_from_h5(meta, key):
-    if meta is None or h5py is None:
+def get_value_from_h5(path, key):
+    if h5py is None:
         return None
-    if key in meta:
-        return np.array(meta[key]).T
-    return None
+    with h5py.File(path, "r") as f:
+        meta = f.get("meta")
+        return _h5_get_meta_field(f, meta, key)
 
 
 def summarize_file(path):
@@ -77,9 +107,9 @@ def summarize_file(path):
         hw95_hist = _extract_meta_value(meta, "hw95_hist")
         elapsed_sec = _extract_meta_value(meta, "elapsed_sec")
     else:
-        attacks_hist = get_value_from_h5(meta, "attacks_hist")
-        hw95_hist = get_value_from_h5(meta, "hw95_hist")
-        elapsed_sec = get_value_from_h5(meta, "elapsed_sec")
+        attacks_hist = get_value_from_h5(path, "attacks_hist")
+        hw95_hist = get_value_from_h5(path, "hw95_hist")
+        elapsed_sec = get_value_from_h5(path, "elapsed_sec")
 
     final_attacks = _to_last_float(attacks_hist)
     final_hw95 = _to_last_float(hw95_hist)
