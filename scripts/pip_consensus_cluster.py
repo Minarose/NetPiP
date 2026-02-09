@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import argparse
+import csv
 import glob
 import os
 from pathlib import Path
@@ -45,6 +46,81 @@ def load_mat_any(path, varname):
         if name is None:
             raise KeyError(f"{varname} not found in {path}")
         return np.array(f[name], dtype=np.float64).T
+
+
+def _extract_attacks_hist_from_meta(meta):
+    if meta is None:
+        return None
+    if hasattr(meta, "attacks_hist"):
+        return meta.attacks_hist
+    if isinstance(meta, dict):
+        return meta.get("attacks_hist")
+    return None
+
+
+def _extract_n_attacks_final_from_meta(meta):
+    if meta is None:
+        return None
+    if hasattr(meta, "n_attacks_final"):
+        return meta.n_attacks_final
+    if isinstance(meta, dict):
+        return meta.get("n_attacks_final")
+    return None
+
+
+def load_attacks_final(path):
+    if scipy.io is not None:
+        try:
+            mat = scipy.io.loadmat(path, squeeze_me=True, struct_as_record=False)
+            meta = mat.get("meta")
+            n_attacks = _extract_n_attacks_final_from_meta(meta)
+            if n_attacks is not None:
+                return float(np.asarray(n_attacks).squeeze())
+            attacks_hist = _extract_attacks_hist_from_meta(meta)
+            if attacks_hist is not None:
+                attacks = np.asarray(attacks_hist, dtype=np.float64).ravel()
+                attacks = attacks[np.isfinite(attacks)]
+                if attacks.size:
+                    return float(attacks[-1])
+        except NotImplementedError:
+            pass
+
+    if h5py is None:
+        return None
+    with h5py.File(path, "r") as f:
+        if "meta" not in f:
+            return None
+        meta = f["meta"]
+        if "n_attacks_final" in meta:
+            data = np.array(meta["n_attacks_final"], dtype=np.float64).squeeze()
+            if np.size(data):
+                return float(np.ravel(data)[0])
+        if "attacks_hist" in meta:
+            data = np.array(meta["attacks_hist"], dtype=np.float64).T
+            attacks = np.ravel(data)
+            attacks = attacks[np.isfinite(attacks)]
+            if attacks.size:
+                return float(attacks[-1])
+    return None
+
+
+def compute_attack_outliers(attacks, method="iqr", iqr_k=1.5, z_thresh=3.0):
+    attacks = np.asarray(attacks, dtype=np.float64)
+    attacks = attacks[np.isfinite(attacks)]
+    if attacks.size == 0:
+        return np.array([], dtype=bool), None
+    if method == "zscore":
+        mean = float(np.mean(attacks))
+        std = float(np.std(attacks))
+        if std == 0:
+            return np.zeros(attacks.shape, dtype=bool), mean
+        z = (attacks - mean) / std
+        return z > z_thresh, mean + z_thresh * std
+    q1 = float(np.percentile(attacks, 25))
+    q3 = float(np.percentile(attacks, 75))
+    iqr = q3 - q1
+    cutoff = q3 + iqr_k * iqr
+    return attacks > cutoff, cutoff
 
 
 def crop_longest_non_nan_block_cols(x):
@@ -170,6 +246,25 @@ def plot_consensus_markers(coords, consensus, out_path, threshold=None, title=""
     ).savefig(out_path)
 
 
+def plot_subject_critical_nodes(coords, crit_mask, out_path, title=""):
+    if plotting is None:
+        raise RuntimeError("nilearn is required for plotting.")
+    crit_mask = np.asarray(crit_mask).astype(bool)
+    if coords.size == 0 or not np.any(crit_mask):
+        return
+    plotting.plot_markers(
+        np.ones(int(crit_mask.sum())),
+        coords[crit_mask],
+        node_size=40,
+        node_cmap="Reds",
+        node_vmin=0,
+        node_vmax=1,
+        display_mode="lzr",
+        colorbar=False,
+        title=title,
+    ).savefig(out_path)
+
+
 def main():
     repo_root = Path(__file__).resolve().parents[1]
     parser = argparse.ArgumentParser(description="Consensus clustering across subjects.")
@@ -195,6 +290,33 @@ def main():
         type=float,
         default=[0.25, 0.5, 0.75],
     )
+    parser.add_argument(
+        "--out-subject-figs",
+        default=None,
+        help="Directory for per-subject critical-node brain plots.",
+    )
+    parser.add_argument(
+        "--exclude-attack-outliers",
+        action="store_true",
+        help="Exclude subjects with unusually high #attacks to convergence.",
+    )
+    parser.add_argument(
+        "--attack-outlier-method",
+        choices=["iqr", "zscore"],
+        default="iqr",
+    )
+    parser.add_argument(
+        "--attack-outlier-k",
+        type=float,
+        default=1.5,
+        help="IQR multiplier for attack outliers (method=iqr).",
+    )
+    parser.add_argument(
+        "--attack-outlier-z",
+        type=float,
+        default=3.0,
+        help="Z-score threshold for attack outliers (method=zscore).",
+    )
     args = parser.parse_args()
 
     mat_paths = sorted(glob.glob(os.path.join(args.results_dir, "*_ConvHW.mat")))
@@ -205,14 +327,54 @@ def main():
     if coords.ndim != 2 or coords.shape[1] != 3:
         raise ValueError(f"Coords file should be N x 3: {args.coords}")
 
+    attacks_final = []
+    for path in mat_paths:
+        attacks_final.append(load_attacks_final(path))
+
+    if args.exclude_attack_outliers:
+        valid_attacks = [a for a in attacks_final if a is not None]
+        outlier_mask, cutoff = compute_attack_outliers(
+            valid_attacks,
+            method=args.attack_outlier_method,
+            iqr_k=args.attack_outlier_k,
+            z_thresh=args.attack_outlier_z,
+        )
+        outlier_values = set(np.asarray(valid_attacks)[outlier_mask])
+        excluded = []
+        kept_paths = []
+        kept_attacks = []
+        for path, attacks in zip(mat_paths, attacks_final):
+            if attacks is not None and attacks in outlier_values:
+                excluded.append((path, attacks))
+            else:
+                kept_paths.append(path)
+                kept_attacks.append(attacks)
+        mat_paths = kept_paths
+        attacks_final = kept_attacks
+        print(f"Excluded {len(excluded)} subjects for high #attacks.")
+        if cutoff is not None:
+            print(f"Attack outlier cutoff ({args.attack_outlier_method}) = {cutoff:.2f}")
+
+        os.makedirs(args.out_results, exist_ok=True)
+        with open(os.path.join(args.out_results, "attack_outliers.csv"), "w", newline="") as f:
+            writer = csv.writer(f)
+            writer.writerow(["subject_file", "final_attacks", "excluded"])
+            for path, attacks in excluded:
+                writer.writerow([os.path.basename(path), attacks, True])
+            for path, attacks in zip(mat_paths, attacks_final):
+                writer.writerow([os.path.basename(path), attacks, False])
+
     crit_list = []
+    subject_records = []
     for path in mat_paths:
         P = load_mat_any(path, varname="node_P")
         node_by_step = P.T
         crit = critical_nodes_from_matrix(node_by_step)
         if crit is None:
             continue
+        crit = np.asarray(crit).astype(bool)
         crit_list.append(crit.astype(int))
+        subject_records.append((path, crit))
 
     if not crit_list:
         raise RuntimeError("No valid subjects found for consensus.")
@@ -254,6 +416,18 @@ def main():
             threshold=thr,
             title=f"PiP consensus (>= {thr:.2f})",
         )
+
+    if args.out_subject_figs is not None:
+        os.makedirs(args.out_subject_figs, exist_ok=True)
+        for path, crit in subject_records:
+            base = os.path.splitext(os.path.basename(path))[0]
+            out_path = os.path.join(args.out_subject_figs, f"{base}_critical_nodes.png")
+            plot_subject_critical_nodes(
+                coords,
+                crit,
+                out_path,
+                title=f"{base} | critical nodes",
+            )
 
 
 if __name__ == "__main__":
