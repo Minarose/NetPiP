@@ -17,3 +17,7 @@ python3 "$NETPIP_ROOT/scripts/identify_critical_nodes.py" \
   --labels-mat "$NETPIP_ROOT/data/networks/airports_LCC.mat" \
   --out-dir "$NETPIP_ROOT/results/networks_airports" \
   --k-min 2 --k-max 10
+
+python3 "$NETPIP_ROOT/scripts/summarize_convergence.py" \
+  --results-dir "$NETPIP_ROOT/results/networks_airports" \
+  --out-csv "$NETPIP_ROOT/results/networks_airports/airports_convergence_summary.csv"

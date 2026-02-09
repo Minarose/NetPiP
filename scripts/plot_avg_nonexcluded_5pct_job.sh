@@ -25,3 +25,12 @@ python3 "$NETPIP_ROOT/scripts/plot_avg_cluster.py" \
   --pip-mat "$PIP_MAT" \
   --out-dir "$NETPIP_ROOT/figures/5percthresh_analysis/pip_avg_cluster_nonexcluded" \
   --k-min 2 --k-max 10 | tee "$NETPIP_ROOT/results/consensus_5pct/avg_nonexcluded_top_cluster_nodes.txt"
+
+python3 "$NETPIP_ROOT/scripts/label_cluster_nodes.py" \
+  --labels-csv "$NETPIP_ROOT/data/MNI_66_AAL_onelinestructure.csv" \
+  --indices-csv "$NETPIP_ROOT/figures/5percthresh_analysis/pip_avg_cluster_nonexcluded/AVG_broadband_psi_adj_top05_nonexcluded_ConvHW_top_cluster_nodes.csv" \
+  --out-csv "$NETPIP_ROOT/results/consensus_5pct/avg_nonexcluded_top_cluster_nodes_labeled.csv"
+
+python3 "$NETPIP_ROOT/scripts/summarize_convergence.py" \
+  --results-dir "$PIP_ROOT/results_converge_5pct_avg_nonexcluded" \
+  --out-csv "$NETPIP_ROOT/results/consensus_5pct/avg_nonexcluded_convergence_summary.csv"

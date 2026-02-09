@@ -1,0 +1,6 @@
+index_0based,index_1based,label
+20,21,// Left Cerebrum // Temporal Lobe // Superior Temporal Gyrus // White Matter // undefined // Temporal_Sup_L (aal)
+21,22,// Left Cerebrum // Frontal Lobe // Precentral Gyrus // White Matter // undefined // Rolandic_Oper_L (aal)
+27,28,// Left Cerebrum // Frontal Lobe // Precentral Gyrus // White Matter // undefined // Postcentral_L (aal)
+33,34,// Left Cerebrum // Parietal Lobe // Inferior Parietal Lobule // Gray Matter // brodmann area 40 // Parietal_Inf_L (aal)
+34,35,// Left Cerebrum // Frontal Lobe // Precentral Gyrus // Gray Matter // brodmann area 6 // Precentral_L (aal)
