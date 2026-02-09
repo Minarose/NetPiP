@@ -208,7 +208,28 @@ def plot_heatmap_2d_on_ax(ax, mat, labels=None, vmin=None, vmax=None):
     return im
 
 
-def plot_tauS6_for_set(mat_paths_set, out_root, tag="postHW", k=66, clip_negative=True):
+def _downsample_matrix(mat, max_steps=None, max_nodes=None):
+    steps, nodes = mat.shape
+    step_idx = np.arange(steps)
+    node_idx = np.arange(nodes)
+    if max_steps is not None and steps > max_steps:
+        step_idx = np.linspace(0, steps - 1, max_steps, dtype=int)
+    if max_nodes is not None and nodes > max_nodes:
+        node_idx = np.linspace(0, nodes - 1, max_nodes, dtype=int)
+    return mat[np.ix_(step_idx, node_idx)]
+
+
+def plot_tauS6_for_set(
+    mat_paths_set,
+    out_root,
+    tag="postHW",
+    k=66,
+    clip_negative=True,
+    max_steps=None,
+    max_nodes=None,
+    only_3d=False,
+    only_2d=False,
+):
     """Process .mat files with τ=S/6 and save 2D + 3D plots."""
     out_dir = os.path.join(out_root, f"tauS6_{tag}")
     os.makedirs(out_dir, exist_ok=True)
@@ -233,8 +254,13 @@ def plot_tauS6_for_set(mat_paths_set, out_root, tag="postHW", k=66, clip_negativ
         prefix = base_name.split("_")[0]
 
         base = os.path.join(out_dir, f"{prefix}_tauS6_{tag}")
-        plot_surface_3d(display_mat, base + "_3D.png", labels=None)
-        plot_heatmap_2d(display_mat, base + "_2D.png", labels=labels)
+        if max_steps is not None or max_nodes is not None:
+            display_mat = _downsample_matrix(display_mat, max_steps=max_steps, max_nodes=max_nodes)
+
+        if not only_2d:
+            plot_surface_3d(display_mat, base + "_3D.png", labels=None)
+        if not only_3d:
+            plot_heatmap_2d(display_mat, base + "_2D.png", labels=labels)
 
 
 def _map_subject_files(file_paths, suffix):
@@ -340,6 +366,10 @@ def main():
     )
     parser.add_argument("--compare-old-dir", default=None)
     parser.add_argument("--compare-new-dir", default=None)
+    parser.add_argument("--max-steps", type=int, default=None)
+    parser.add_argument("--max-nodes", type=int, default=None)
+    parser.add_argument("--only-3d", action="store_true")
+    parser.add_argument("--only-2d", action="store_true")
     args = parser.parse_args()
 
     results_dir = args.results_dir or os.path.join(args.pip_root, "results_converge")
@@ -363,6 +393,10 @@ def main():
         tag=args.tag,
         k=args.k,
         clip_negative=not args.no_clip_negative,
+        max_steps=args.max_steps,
+        max_nodes=args.max_nodes,
+        only_3d=args.only_3d,
+        only_2d=args.only_2d,
     )
 
     if args.compare_old_dir or args.compare_new_dir:
