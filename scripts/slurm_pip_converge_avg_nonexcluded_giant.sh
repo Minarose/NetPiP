@@ -1,10 +1,10 @@
 #!/bin/bash
-#SBATCH --job-name=pipConvAvg5pctNE
+#SBATCH --job-name=pipConvAvgGiantNE
 #SBATCH --cpus-per-task=30
 #SBATCH --mem=250G
 #SBATCH --time=70:00:00
-#SBATCH --output=logs/conv5pct_avg_nonexcluded_%j.out
-#SBATCH --error=logs/conv5pct_avg_nonexcluded_%j.err
+#SBATCH --output=logs/conv_giant_avg_nonexcluded_%j.out
+#SBATCH --error=logs/conv_giant_avg_nonexcluded_%j.err
 #SBATCH --mail-user=minarose.ismail@sickkids.ca
 #SBATCH --mail-type=END,FAIL
 
@@ -22,7 +22,7 @@ export NETPIP_ROOT=/hpf/projects/dkadis/ismail/NetPiP
 SIF=/hpf/projects/imaginglab/matlab/imaging-lab_matlab_r2024b.sif
 SCRIPT=$NETPIP_ROOT/scripts/pip_converge_posthw5_thresh.m
 
-export SUBJECT_FILE=avg/AVG_broadband_psi_adj_top05_nonexcluded.mat
+export SUBJECT_FILE=avg/AVG_broadband_psi_adj_giant75_nonexcluded.mat
 
 echo ">>> Running avg matrix: $SUBJECT_FILE"
 echo ">>> CPUs: $SLURM_CPUS_PER_TASK  Scratch: $SCRATCH_DIR"
@@ -34,7 +34,7 @@ export REQUIRE_STABLE=3
 export ENFORCE_HW95=0
 export BASE_SEED=12345
 export THRESH_PROP=1.0
-export OUT_DIR=$PIP_ROOT/results_converge_5pct_avg_nonexcluded
+export OUT_DIR=$PIP_ROOT/results_converge_giant_avg_nonexcluded
 
 singularity exec \
     --env MLM_LICENSE_FILE=27000@imaginglab-mgt.ccm.sickkids.ca \
@@ -49,6 +49,7 @@ singularity exec \
     --env CHUNK_SIZE=$CHUNK_SIZE \
     --env HW95_TOL=$HW95_TOL \
     --env REQUIRE_STABLE=$REQUIRE_STABLE \
+    --env ENFORCE_HW95=$ENFORCE_HW95 \
     --env BASE_SEED=$BASE_SEED \
     --env THRESH_PROP=$THRESH_PROP \
     --env OUT_DIR=$OUT_DIR \

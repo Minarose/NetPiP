@@ -15,3 +15,7 @@ export NETPIP_ROOT=/hpf/projects/dkadis/ismail/NetPiP
 python3 "$NETPIP_ROOT/scripts/plot_avg_psi_matrix.py" \
   --avg-mat "$NETPIP_ROOT/data/PSI_broadband_MEG_mats/avg/AVG_broadband_psi_adj_top05_nonexcluded.mat" \
   --out-dir "$NETPIP_ROOT/figures/5percthresh_analysis/psi_matrices_avg_nonexcluded"
+
+python3 "$NETPIP_ROOT/scripts/plot_avg_psi_matrix.py" \
+  --avg-mat "$NETPIP_ROOT/data/PSI_broadband_MEG_mats/avg/AVG_broadband_psi_adj_giant75_nonexcluded.mat" \
+  --out-dir "$NETPIP_ROOT/figures/5percthresh_analysis/psi_matrices_avg_giant_nonexcluded"

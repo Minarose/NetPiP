@@ -36,6 +36,11 @@ if isnan(plateau_start) || plateau_start <= 0
     plateau_start = 0.05;
 end
 
+enforce_hw = str2double(getenv('ENFORCE_HW95'));
+if isnan(enforce_hw)
+    enforce_hw = 1;
+end
+
 needStable = str2double(getenv('REQUIRE_STABLE'));
 if isnan(needStable) || needStable < 1
     needStable = 3;
@@ -73,6 +78,7 @@ fprintf('\n>>> SUBJECT=%s\n', SUBJECT_FILE);
 fprintf('    MAX_ATTACKS=%d, CHUNK=%d\n', MAX_ATTACKS, CHUNK_SIZE);
 fprintf('    plateau_start=%.3f, range_tol=%.4f, slope_tol=%.1e, win_len=%d, needStable=%d\n', ...
     plateau_start, range_tol, slope_tol, win_len, needStable);
+fprintf('    enforce_hw95=%d\n', enforce_hw);
 fprintf('    THRESH_PROP=%.2f\n\n', THRESH_PROP);
 
 %% ===================== LOAD + THRESHOLD =====================
@@ -211,7 +217,7 @@ while n_attacks < MAX_ATTACKS
     hw95_hist(end+1,1)    = hw95;      %#ok<AGROW>
 
     [is_plateau, slope_val, range_val, mean_val] = ...
-        check_hw_plateau(attacks_hist, hw95_hist, plateau_start, range_tol, slope_tol, win_len);
+        check_hw_plateau(attacks_hist, hw95_hist, plateau_start, range_tol, slope_tol, win_len, enforce_hw);
 
     if is_plateau
         stableCount = stableCount + 1;
@@ -302,7 +308,7 @@ end
 end
 
 function [is_plateau, slope_val, range_val, mean_val] = ...
-    check_hw_plateau(attacks_hist, hw95_hist, plateau_start, range_tol, slope_tol, win_len)
+    check_hw_plateau(attacks_hist, hw95_hist, plateau_start, range_tol, slope_tol, win_len, enforce_hw)
 n = numel(hw95_hist);
 if n < win_len
     is_plateau = false;
@@ -320,5 +326,9 @@ range_val = max(hw) - min(hw);
 slope_val = polyfit(atk, hw, 1);
 slope_val = slope_val(1);
 
-is_plateau = (mean_val < plateau_start) && (range_val < range_tol) && (abs(slope_val) < slope_tol);
+if enforce_hw
+    is_plateau = (mean_val < plateau_start) && (range_val < range_tol) && (abs(slope_val) < slope_tol);
+else
+    is_plateau = (range_val < range_tol) && (abs(slope_val) < slope_tol);
+end
 end

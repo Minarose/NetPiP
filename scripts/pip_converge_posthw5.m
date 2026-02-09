@@ -55,6 +55,11 @@ if isnan(plateau_start) || plateau_start <= 0
     plateau_start = 0.05;
 end
 
+enforce_hw = str2double(getenv('ENFORCE_HW95'));
+if isnan(enforce_hw)
+    enforce_hw = 1;
+end
+
 needStable = str2double(getenv('REQUIRE_STABLE'));
 if isnan(needStable) || needStable < 1
     needStable = 3;
@@ -81,8 +86,9 @@ if isnan(BASE_SEED), BASE_SEED = 12345; end
 
 fprintf('\n>>> SUBJECT=%s\n', SUBJECT_FILE);
 fprintf('    MAX_ATTACKS=%d, CHUNK=%d\n', MAX_ATTACKS, CHUNK_SIZE);
-fprintf('    plateau_start=%.3f, range_tol=%.4f, slope_tol=%.1e, win_len=%d, needStable=%d\n\n', ...
+fprintf('    plateau_start=%.3f, range_tol=%.4f, slope_tol=%.1e, win_len=%d, needStable=%d\n', ...
     plateau_start, range_tol, slope_tol, win_len, needStable);
+fprintf('    enforce_hw95=%d\n\n', enforce_hw);
 
 %% ===================== LOAD ADJACENCY =======================
 
@@ -226,7 +232,7 @@ while n_attacks < MAX_ATTACKS
     % --------- PLATEAU CHECK ---------
     [is_plateau, slope_val, range_val, mean_val] = ...
         check_hw_plateau(attacks_hist, hw95_hist, ...
-                         plateau_start, range_tol, slope_tol, win_len);
+                         plateau_start, range_tol, slope_tol, win_len, enforce_hw);
 
     if is_plateau
         stableCount = stableCount + 1;
@@ -300,7 +306,7 @@ end
 end
 
 function [is_plateau, slope_val, range_val, mean_val] = ...
-    check_hw_plateau(attacks_hist, hw95_hist, plateau_start, range_tol, slope_tol, win_len)
+    check_hw_plateau(attacks_hist, hw95_hist, plateau_start, range_tol, slope_tol, win_len, enforce_hw)
 % Decide whether hw95 has reached a plateau:
 %   1) magnitude: mean(hw95_window) < plateau_start
 %   2) range:     max(hw95_window) - min(hw95_window) < range_tol
@@ -330,5 +336,9 @@ function [is_plateau, slope_val, range_val, mean_val] = ...
     range_ok  = range_val < range_tol;
     slope_ok  = abs(slope_val) < slope_tol;
 
-    is_plateau = mag_ok && range_ok && slope_ok;
+    if enforce_hw
+        is_plateau = mag_ok && range_ok && slope_ok;
+    else
+        is_plateau = range_ok && slope_ok;
+    end
 end
