@@ -1,5 +1,11 @@
 # NetPiP — Participation in Percolation
 
+<p align="center">
+  <img src="figures/pip_surface_rotation.gif" alt="Rotating 360 view of the group-average Participation-in-Percolation surface" width="640">
+  <br>
+  <em>Group-average PiP surface (giant-75, n = 19) &mdash; 360&deg; rotation of the &tau; = S/6 tilted node_P matrix.</em>
+</p>
+
 > **A data-driven measure of network hubs based on Monte Carlo node-removal attacks and percolation-based collapse analysis.**
 
 Brady J. Williamson¹, Minarose Ismail²,³, Darren S. Kadis²,³

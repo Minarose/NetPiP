@@ -26,4 +26,5 @@ Scripts are numbered in pipeline order. Run them top-to-bottom (or use the match
   - `plot_convergence_trace.py` — single PDF of HW95 traces
   - `plot_figureS1_giant_binary_adjacency.py` — Supplementary Fig. S1
   - `validate_pip_cluster_drives_percolation.m` — sanity check that the PiP cluster nodes alone drive percolation
+  - `render_pip_surface_rotation.py` — render the rotating 360 deg PiP-surface GIF used as the README hero image
 - `slurm/` — Slurm job wrappers using the same number prefixes as the canonical scripts (e.g. `2_pip_converge_avg.sh`, `3_plot_pip_surfaces.sh`).
