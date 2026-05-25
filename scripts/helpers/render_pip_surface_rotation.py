@@ -43,7 +43,7 @@ def render(
     out_path: Path,
     frames: int = 72,
     fps: int = 24,
-    figsize: tuple[float, float] = (9.0, 7.5),
+    figsize: tuple[float, float] = (8.5, 6.0),
     dpi: int = 160,
     tau_factor: float = 1.0 / 6.0,
 ) -> None:
@@ -58,7 +58,9 @@ def render(
     X, Y = np.meshgrid(np.arange(S), np.arange(N), indexing="ij")
 
     fig = plt.figure(figsize=figsize, dpi=dpi)
+    fig.patch.set_alpha(0.0)
     ax = fig.add_subplot(111, projection="3d")
+    ax.patch.set_alpha(0.0)
     surf = ax.plot_surface(
         X,
         Y,
@@ -71,12 +73,13 @@ def render(
         alpha=0.95,
         shade=True,
     )
-    cbar = fig.colorbar(surf, ax=ax, shrink=0.4, pad=0.06)
-    cbar.set_label("Tilted participation", fontsize=10)
+    cbar = fig.colorbar(surf, ax=ax, shrink=0.4, pad=0.02)
+    cbar.set_label("Participation in Percolation", fontsize=10)
     cbar.ax.tick_params(labelsize=8)
+    cbar.outline.set_visible(False)
 
-    ax.set_xlabel("Attack step", fontsize=10, labelpad=8)
-    ax.set_ylabel("Node index", fontsize=10, labelpad=8)
+    ax.set_xlabel("Attack step", fontsize=10, labelpad=6)
+    ax.set_ylabel("Node index", fontsize=10, labelpad=6)
     ax.set_zticks([])
     ax.set_zticklabels([])
     ax.tick_params(axis="z", length=0, colors=(1, 1, 1, 0))
@@ -84,7 +87,9 @@ def render(
         axis.set_pane_color((1, 1, 1, 0))
         axis._axinfo["grid"]["color"] = (1, 1, 1, 0)
     ax.tick_params(labelsize=8)
-    ax.set_title("Participation in Percolation (group average, giant-75)", fontsize=11)
+
+    ax.set_position([-0.04, -0.02, 0.92, 1.06])
+    fig.subplots_adjust(left=0.0, right=1.0, bottom=0.0, top=1.0)
 
     elev = 28.0
 
@@ -96,7 +101,7 @@ def render(
     anim = FuncAnimation(fig, update, frames=frames, interval=1000 / fps, blit=False)
     out_path.parent.mkdir(parents=True, exist_ok=True)
     writer = PillowWriter(fps=fps)
-    anim.save(out_path, writer=writer, dpi=dpi)
+    anim.save(out_path, writer=writer, dpi=dpi, savefig_kwargs={"transparent": True})
     plt.close(fig)
     size_kb = out_path.stat().st_size / 1024
     print(f"Wrote {out_path}  ({frames} frames, {fps} fps, {size_kb:.0f} KB)")
