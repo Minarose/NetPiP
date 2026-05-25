@@ -41,10 +41,10 @@ DEFAULT_OUT = REPO / "figures" / "pip_surface_rotation.gif"
 def render(
     pip_mat: Path,
     out_path: Path,
-    frames: int = 60,
-    fps: int = 20,
-    figsize: tuple[float, float] = (7.0, 6.0),
-    dpi: int = 90,
+    frames: int = 72,
+    fps: int = 24,
+    figsize: tuple[float, float] = (9.0, 7.5),
+    dpi: int = 160,
     tau_factor: float = 1.0 / 6.0,
 ) -> None:
     P_raw = load_pip_any(str(pip_mat))
@@ -65,10 +65,11 @@ def render(
         Z,
         cmap="gist_heat_r",
         linewidth=0,
-        antialiased=False,
+        antialiased=True,
         rstride=1,
         cstride=1,
-        alpha=0.9,
+        alpha=0.95,
+        shade=True,
     )
     cbar = fig.colorbar(surf, ax=ax, shrink=0.4, pad=0.06)
     cbar.set_label("Tilted participation", fontsize=10)
@@ -105,9 +106,9 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--pip-mat", default=str(DEFAULT_PIP_MAT))
     parser.add_argument("--out", default=str(DEFAULT_OUT))
-    parser.add_argument("--frames", type=int, default=60)
-    parser.add_argument("--fps", type=int, default=20)
-    parser.add_argument("--dpi", type=int, default=90)
+    parser.add_argument("--frames", type=int, default=72)
+    parser.add_argument("--fps", type=int, default=24)
+    parser.add_argument("--dpi", type=int, default=160)
     args = parser.parse_args()
     render(
         pip_mat=Path(args.pip_mat),
