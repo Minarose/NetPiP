@@ -10,6 +10,7 @@ azimuth from 0 to 360 deg, saving an animated GIF via Pillow.
 from __future__ import annotations
 
 import argparse
+import io
 import sys
 from pathlib import Path
 
@@ -18,7 +19,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
-from matplotlib.animation import FuncAnimation, PillowWriter
+from PIL import Image
 
 REPO = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO / "scripts"))
@@ -41,10 +42,10 @@ DEFAULT_OUT = REPO / "figures" / "pip_surface_rotation.gif"
 def render(
     pip_mat: Path,
     out_path: Path,
-    frames: int = 72,
-    fps: int = 24,
+    frames: int = 60,
+    fps: int = 20,
     figsize: tuple[float, float] = (8.5, 6.0),
-    dpi: int = 160,
+    dpi: int = 130,
     tau_factor: float = 1.0 / 6.0,
 ) -> None:
     P_raw = load_pip_any(str(pip_mat))
@@ -57,10 +58,9 @@ def render(
 
     X, Y = np.meshgrid(np.arange(S), np.arange(N), indexing="ij")
 
-    fig = plt.figure(figsize=figsize, dpi=dpi)
-    fig.patch.set_alpha(0.0)
+    fig = plt.figure(figsize=figsize, dpi=dpi, facecolor="white")
     ax = fig.add_subplot(111, projection="3d")
-    ax.patch.set_alpha(0.0)
+    ax.set_facecolor("white")
     surf = ax.plot_surface(
         X,
         Y,
@@ -93,16 +93,32 @@ def render(
 
     elev = 28.0
 
-    def update(frame: int):
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+
+    rendered: list[Image.Image] = []
+    for frame in range(frames):
         azim = (360.0 * frame / frames) % 360.0
         ax.view_init(elev=elev, azim=azim)
-        return (surf,)
+        buf = io.BytesIO()
+        fig.savefig(buf, format="png", dpi=dpi, facecolor="white")
+        buf.seek(0)
+        rgba = Image.open(buf).convert("RGBA")
+        rgb = Image.new("RGB", rgba.size, (255, 255, 255))
+        rgb.paste(rgba, mask=rgba.split()[3])
+        palette = rgb.quantize(colors=256, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.FLOYDSTEINBERG)
+        rendered.append(palette)
 
-    anim = FuncAnimation(fig, update, frames=frames, interval=1000 / fps, blit=False)
-    out_path.parent.mkdir(parents=True, exist_ok=True)
-    writer = PillowWriter(fps=fps)
-    anim.save(out_path, writer=writer, dpi=dpi, savefig_kwargs={"transparent": True})
     plt.close(fig)
+
+    rendered[0].save(
+        out_path,
+        save_all=True,
+        append_images=rendered[1:],
+        duration=int(1000 / fps),
+        loop=0,
+        optimize=False,
+        disposal=1,
+    )
     size_kb = out_path.stat().st_size / 1024
     print(f"Wrote {out_path}  ({frames} frames, {fps} fps, {size_kb:.0f} KB)")
 
@@ -111,9 +127,9 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--pip-mat", default=str(DEFAULT_PIP_MAT))
     parser.add_argument("--out", default=str(DEFAULT_OUT))
-    parser.add_argument("--frames", type=int, default=72)
-    parser.add_argument("--fps", type=int, default=24)
-    parser.add_argument("--dpi", type=int, default=160)
+    parser.add_argument("--frames", type=int, default=60)
+    parser.add_argument("--fps", type=int, default=20)
+    parser.add_argument("--dpi", type=int, default=130)
     args = parser.parse_args()
     render(
         pip_mat=Path(args.pip_mat),
