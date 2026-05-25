@@ -1,7 +1,7 @@
 """Tilted-peak ranking and percolation-point helpers.
 
-Ported from ``scripts/plot_pip_surfaces.py::get_tilt_peak_order_amplitude`` and
-the percolation-point logic in ``scripts/avg_percolation_metrics_brain_jaccard.py``.
+Ported from ``scripts/helpers/pip_plot_utils.py::get_tilt_peak_order_amplitude`` and
+the percolation-point logic in ``scripts/6_jaccard_overlap.py``.
 """
 
 from __future__ import annotations
@@ -91,7 +91,7 @@ def percolation_point(adj: np.ndarray, attack_order: np.ndarray) -> int:
     """1-based removal step at which the 2nd-largest component first peaks.
 
     Mirrors ``run_attack_once`` in
-    ``scripts/compare_pip_bct_percolation_avg_single.m`` and the engine in
+    ``scripts/5_graph_theory_avg.m`` and the engine in
     :mod:`netpip.core`: if no removal ever produces a second component larger
     than one node, returns ``N``.
     """

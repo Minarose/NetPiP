@@ -1,7 +1,7 @@
 """Monte Carlo Participation-in-Percolation (PiP) engine.
 
 This is a faithful Python port of the MATLAB convergence engine
-``scripts/pip_converge_posthw5_thresh.m`` used in the accompanying manuscript.
+``scripts/2_pip_converge.m`` used in the accompanying manuscript.
 
 Algorithm (per attack):
 
@@ -172,7 +172,7 @@ def run_pip(
     Notes
     -----
     The output ``node_P`` matches the ``node_P`` saved by the MATLAB driver
-    (``pip_converge_posthw5_thresh.m``) up to Monte Carlo sampling noise.
+    (``2_pip_converge.m``) up to Monte Carlo sampling noise.
     Differences in random-stream implementation between MATLAB's Threefry RNG
     and NumPy's PCG64 mean exact bit-for-bit reproducibility across the two
     engines is not expected; cohort-level results are.

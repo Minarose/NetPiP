@@ -146,14 +146,14 @@ node_P[p, i]         = part_counts[p, i] / counts_per_step[p]
 ```
 
 This is exactly the `node_P` saved by the MATLAB driver
-`scripts/pip_converge_posthw5_thresh.m` in the parent repository, up to Monte
+`scripts/2_pip_converge.m` in the parent repository, up to Monte
 Carlo sampling noise (the two engines use different RNGs).
 
 ---
 
 ## Reproducing the paper
 
-For the full reproducible analysis (group-average construction from per-subject MEG PSI matrices, giant-component thresholding rule, MATLAB convergence engine with Slurm wrappers, paper figures, BrainNet Viewer rendering), see the parent repository — in particular `analysis/giant_component_avg_nonexcluded/README.md` and `REPRODUCING.md` at the repo root.
+For the full reproducible analysis (group-average construction from per-subject MEG PSI matrices, giant-component thresholding rule, MATLAB convergence engine with Slurm wrappers, paper figures, BrainNet Viewer rendering), see the parent repository — in particular [`REPRODUCING.md`](../REPRODUCING.md) and the numbered scripts under `scripts/1_*.py` … `scripts/6_*.py`.
 
 ---
 

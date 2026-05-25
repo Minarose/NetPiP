@@ -1,10 +1,7 @@
-logs/*
-!logs/.gitkeep
+# Slurm job logs (referenced by scripts/slurm/*.sh)
+logs/
 
-# Leg-local Python venv (reproducible installs; see analysis/giant_component_avg_nonexcluded/README.md)
-analysis/giant_component_avg_nonexcluded/.venv/
-
-# Root-level virtualenvs (used for netpip toolbox development & testing)
+# Virtual environments
 .venv/
 .venv-*/
 

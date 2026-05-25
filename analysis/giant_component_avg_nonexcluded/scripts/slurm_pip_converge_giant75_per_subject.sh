@@ -1,1 +1,0 @@
-../../../scripts/slurm_pip_converge_giant75_per_subject.sh

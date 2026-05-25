@@ -1,6 +1,6 @@
 """Ward + silhouette hub-cluster identification on the weighted PiP matrix.
 
-Ported from ``scripts/pip_consensus_cluster.py`` (functions
+Ported from ``scripts/4_consensus_cluster_per_subject.py`` (functions
 ``select_optimal_k``, ``silhouette_mean``, ``critical_nodes_from_matrix``) so
 the toolbox has zero dependency on scikit-learn.
 """

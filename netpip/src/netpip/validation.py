@@ -97,7 +97,7 @@ def validate_adjacency(
         Minimum required size of the largest connected component, as a fraction
         of ``N``. PiP is only meaningful when a single connected backbone
         dominates the graph; the giant-component rule used in the accompanying
-        manuscript was 0.75 (see ``analysis/giant_component_avg_nonexcluded``).
+        manuscript was 0.75 (giant-75 thresholding; see top-level REPRODUCING.md).
 
     Returns
     -------

@@ -10,49 +10,58 @@ Brady J. Williamson¹, Minarose Ismail²,³, Darren S. Kadis²,³
 
 ---
 
-This repository hosts both the **reusable toolbox** and the **full reproducible analysis** for the manuscript *"Participation in Percolation: A Data-Driven Measure of Network Hubs in Functional Brain Networks"* (Williamson et al., 202x).
+This repository contains everything needed to reproduce the manuscript *"Participation in Percolation: A Data-Driven Measure of Network Hubs in Functional Brain Networks"* (Williamson et al., 202x) **and** a reusable Python / MATLAB toolbox so anyone can apply PiP to their own networks.
 
-## What's in here
+The paper pipeline is intentionally narrow: starting from per-subject **75 % giant-component** binary PSI matrices, it runs PiP, plots the weighted PiP matrix, clusters to identify the PiP hub set, benchmarks against classical graph-theory hub metrics (Degree, Betweenness, PageRank), and quantifies the overlap with Jaccard similarity. Nothing else.
+
+## Repository layout
 
 ```
 NetPiP/
-├── netpip/              # Pip-installable Python toolbox
-│   ├── src/netpip/      # Public API: validate_adjacency, run_pip, ...
-│   ├── tests/           # Unit tests (pytest)
-│   ├── examples/        # Quickstart on a synthetic graph
-│   └── README.md        # Python install + API
-│
-├── matlab/              # MATLAB sibling toolbox (`+netpip` namespace)
-│   ├── +netpip/         # netpip.validate_adjacency, netpip.run_pip, ...
-│   ├── examples/        # MATLAB quickstart
-│   └── README.md        # MATLAB install + API
-│
-├── analysis/            # Full reproducible analysis bundles
-│   └── giant_component_avg_nonexcluded/
-│       ├── METHODS.md   # Paper-ready methods prose
-│       ├── README.md    # Step-by-step pipeline table
-│       └── ...
-│
-├── scripts/             # Original analysis scripts (Slurm + Python + MATLAB)
-├── data/                # 66-node MNI coords, AAL labels, attack-outlier table
-├── results/             # Generated CSVs / figures (consensus, overlap, jaccard)
-├── figures/             # Paper figures
-├── REPRODUCING.md       # End-to-end reproduction guide
-├── LICENSE              # MIT
-└── CITATION.cff         # Citation metadata
+├── netpip/             # pip-installable Python toolbox (validate, run_pip, ranking, clustering, metrics)
+├── matlab/             # MATLAB sibling toolbox (+netpip namespace)
+├── scripts/            # Paper-reproduction scripts, numbered 1_ .. 6_ in pipeline order
+│   ├── 1_*.{py,m}      # Build giant-75 binary matrices from PSI inputs
+│   ├── 2_*.m           # PiP convergence engine (HPC-aware)
+│   ├── 3_*.py          # PiP surfaces / weighted matrix plots
+│   ├── 4_*.py          # Cluster PiP trajectories -> hub set
+│   ├── 5_*.m           # Degree/Betweenness/PageRank benchmarks (BCT)
+│   ├── 6_*.{py,m}      # Jaccard + overlap analysis, BrainNet renders
+│   ├── helpers/        # Shared utilities + standalone validations
+│   └── slurm/          # Slurm job wrappers, same 1_..6_ numbering
+├── data/               # Inputs (start point = 75% giant-component matrices)
+├── results/            # Convergence outputs, cluster CSVs, overlap CSVs/figures
+├── figures/            # Paper figures (PiP surfaces, cluster, PSI matrices, FigS1)
+├── REPRODUCING.md      # End-to-end reproduction guide
+├── LICENSE             # MIT
+└── CITATION.cff        # Citation metadata
 ```
 
-There are essentially **two ways to use this repository**:
+There are two ways to use this repository:
 
 | You want to ... | Read |
 |---|---|
-| Apply PiP to your own binary adjacency matrices, no MEG data needed | [`netpip/README.md`](netpip/README.md) (Python) or [`matlab/README.md`](matlab/README.md) (MATLAB) |
-| Reproduce the manuscript figures from the MEG data | [`REPRODUCING.md`](REPRODUCING.md) and [`analysis/giant_component_avg_nonexcluded/README.md`](analysis/giant_component_avg_nonexcluded/README.md) |
+| Apply PiP to your own binary adjacency matrices (no MEG data required) | [`netpip/README.md`](netpip/README.md) for Python, [`matlab/README.md`](matlab/README.md) for MATLAB |
+| Reproduce the manuscript figures from the bundled giant-75 matrices | [`REPRODUCING.md`](REPRODUCING.md) and the numbered scripts under `scripts/` |
 
----
+## The reproduction pipeline at a glance
 
-## Quickstart (Python)
+The numbered scripts in `scripts/` follow exactly the order used in the paper:
 
+| Step | Script(s) | What it does |
+|------|-----------|--------------|
+| **1** | `1_make_giant75_per_subject.py`, `1_make_giant75_avg.py`, `1_threshold_giant75.m` | Threshold per-subject PSI matrices at 75 % giant-component density; build the cohort-average graph |
+| **2** | `2_pip_converge.m` | Run the PiP Monte Carlo engine (Wilson 95 % plateau convergence) and save `node_P` |
+| **3** | `3_plot_pip_surfaces.py` | Plot 2D / 3D τ = S/6 tilted PiP surfaces (the "weighted matrix" view) |
+| **4** | `4_cluster_pip_set.py`, `4_consensus_cluster_per_subject.py` | Ward + silhouette clustering on tilted trajectories → identify PiP hub set |
+| **5** | `5_graph_theory_avg.m`, `5_graph_theory_per_subject.m` | Degree / Betweenness / PageRank percolation-point benchmarks (BCT) |
+| **6** | `6_export_pip_order.py`, `6_jaccard_overlap.py`, `6_render_brainnet_overlap.m` | Export PiP order, compute Jaccard / Venn overlaps, render BrainNet cortical figures |
+
+Each Slurm wrapper in `scripts/slurm/` uses the same number prefix (`2_pip_converge_avg.sh`, `3_plot_pip_surfaces.sh`, …).
+
+## Quickstart (toolbox — no MEG data required)
+
+### Python
 ```bash
 pip install -e netpip[networkx]
 python netpip/examples/quickstart.py
@@ -62,15 +71,13 @@ python netpip/examples/quickstart.py
 import numpy as np
 from netpip import validate_adjacency, run_pip, pip_top_n_at_percolation_point
 
-A = ...                                    # your binary, symmetric, 0-diagonal adjacency
+A = ...  # your binary, symmetric, 0-diagonal adjacency
 validate_adjacency(A, min_giant_fraction=0.75)
-
 res = run_pip(A, max_attacks=1_000_000, chunk_size=10_000, seed=42)
 hub_nodes = pip_top_n_at_percolation_point(A, res.node_P)
 ```
 
-## Quickstart (MATLAB)
-
+### MATLAB
 ```matlab
 addpath('matlab');
 A = double(your_binary_symmetric_adjacency);
@@ -82,13 +89,11 @@ pp  = netpip.percolation_point(A, order);
 hub = order(1:pp);
 ```
 
----
-
 ## What the toolbox does *not* do
 
-By design, both the Python and MATLAB toolboxes **operate on a pre-built binary adjacency matrix** that you supply. They will validate it (binary, symmetric, zero diagonal, sparse, giant component present) and **error out** if it is malformed — but they will **never modify it**: no thresholding, no binarization, no symmetrization, no giant-component extraction. The PSI / giant-component / averaging pipeline used in the paper lives in `scripts/` and `analysis/` and is described in `REPRODUCING.md`.
+Both toolboxes **operate on a pre-built binary adjacency matrix** that you supply. They validate it (binary, symmetric, zero diagonal, sparse, giant component present) and error out if it is malformed — but they **never modify it**: no thresholding, no binarization, no symmetrization, no giant-component extraction. The 75 % giant-component thresholding used in the paper lives in `scripts/1_*` and is described in `REPRODUCING.md`.
 
-This separation is intentional: PiP is a generic graph-theoretic hub measure that applies to any binary undirected network (functional brain networks, structural connectomes, social networks, infrastructure networks, ...), and the toolbox is meant to be a small dependency you can drop into any project.
+This separation is intentional: PiP is a generic graph-theoretic hub measure that applies to any binary undirected network (functional brain networks, structural connectomes, social networks, infrastructure networks, …) and the toolbox is meant to be a small drop-in dependency.
 
 ---
 

@@ -1,1 +1,0 @@
-../../../scripts/summarize_convergence.py

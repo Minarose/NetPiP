@@ -1,6 +1,6 @@
 # netpip — MATLAB toolbox
 
-A clean MATLAB API for **Participation in Percolation (PiP)**, mirroring the Python `netpip` package. This is the engine used to produce the manuscript results; the canonical Slurm/HPC driver lives in `scripts/pip_converge_posthw5_thresh.m`, while this folder packages the same algorithm as a reusable, parameterized `+netpip` namespace you can drop into any MATLAB project.
+A clean MATLAB API for **Participation in Percolation (PiP)**, mirroring the Python `netpip` package. This is the engine used to produce the manuscript results; the canonical Slurm/HPC driver lives in `scripts/2_pip_converge.m`, while this folder packages the same algorithm as a reusable, parameterized `+netpip` namespace you can drop into any MATLAB project.
 
 ## Requirements
 
@@ -77,11 +77,11 @@ node_P(p, i)         = part_counts(p, i) / counts_per_step(p)
                      = P(node i was removed by step p | percolation step == p)
 ```
 
-This matches the `node_P` saved by `scripts/pip_converge_posthw5_thresh.m` exactly (the underlying loop is the same; the wrapper just makes it parameterized and Slurm-free).
+This matches the `node_P` saved by `scripts/2_pip_converge.m` exactly (the underlying loop is the same; the wrapper just makes it parameterized and Slurm-free).
 
 ## Reproducing the paper results
 
-The single-matrix MATLAB driver `scripts/compare_pip_bct_percolation_avg_single.m` and the per-subject driver `scripts/compare_pip_bct_percolation_giant75.m` compute the BCT-based Degree / Betweenness / PageRank benchmarks reported in the manuscript. The HPC convergence wrapper `scripts/pip_converge_posthw5_thresh.m` is the Slurm-aware production driver; `netpip.run_pip` is the same algorithm exposed as a reusable, interactive function.
+The single-matrix MATLAB driver `scripts/5_graph_theory_avg.m` and the per-subject driver `scripts/5_graph_theory_per_subject.m` compute the BCT-based Degree / Betweenness / PageRank benchmarks reported in the manuscript. The HPC convergence wrapper `scripts/2_pip_converge.m` is the Slurm-aware production driver; `netpip.run_pip` is the same algorithm exposed as a reusable, interactive function.
 
 ## License
 

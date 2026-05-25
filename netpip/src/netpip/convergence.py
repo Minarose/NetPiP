@@ -1,7 +1,7 @@
 """Wilson-95% half-width estimator + plateau-based early-stopping criterion.
 
 Ported from the MATLAB helpers ``wilson_hw_matrix`` and ``check_hw_plateau``
-in ``scripts/pip_converge_posthw5_thresh.m``.
+in ``scripts/2_pip_converge.m``.
 """
 
 from __future__ import annotations

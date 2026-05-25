@@ -1,1 +1,0 @@
-../../../scripts/label_cluster_nodes.py

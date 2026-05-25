@@ -15,7 +15,7 @@ function res = run_pip(A, varargin)
 %       meta             - struct of run parameters
 %
 %   This is a clean (non-Slurm) wrapper around the engine used by
-%   scripts/pip_converge_posthw5_thresh.m. The matrix A is NEVER modified;
+%   scripts/2_pip_converge.m. The matrix A is NEVER modified;
 %   call netpip.validate_adjacency(A) first if you want explicit input
 %   checking.
 %

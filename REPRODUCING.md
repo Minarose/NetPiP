@@ -1,120 +1,166 @@
-# Reproducing the NetPiP analysis
+# Reproducing the manuscript analysis
 
-This guide walks through end-to-end reproduction of the manuscript figures from the per-subject broadband PSI adjacency matrices. The toolbox itself ([`netpip/`](netpip/), [`matlab/`](matlab/)) is **not** required for reproduction — it is a generic re-implementation of the same algorithm — but using it gives you the cleanest Python-only path.
+This guide reproduces the canonical pipeline reported in the paper:
+**75 % giant-component binary PSI matrix → PiP → weighted-matrix / cluster hub identification → graph-theory benchmark (Degree, Betweenness, PageRank) → Jaccard overlap and brain renders.**
 
-If you only want to apply PiP to your own data, see [`netpip/README.md`](netpip/README.md) instead.
+Everything else (5 %-threshold experiments, airports/yeast network experiments, exploratory variants) was removed from this repository. If you only want the toolbox API (no MEG data), see [`netpip/README.md`](netpip/README.md) / [`matlab/README.md`](matlab/README.md) instead.
 
-## 0. Prerequisites
+## 1. Prerequisites
 
-- Python **3.9+**
-- MATLAB **R2020b+** (R2024b used in the paper) — only for the Slurm/HPC PiP convergence driver and the BCT-based metric benchmarks. The Python toolbox can substitute for the MATLAB engine if you don't have a MATLAB license.
-- **Brain Connectivity Toolbox (BCT, 2019_03_03)** on the MATLAB path — only for the per-subject metric benchmarks in `scripts/compare_pip_bct_percolation_giant75.m`
-- **BrainNet Viewer (v1.7 / build 20191031)** on the MATLAB path — only for the final cortical-surface figures in `scripts/render_brainnet_overlap_tifs.m`
+- **Python 3.11** (recommended; the Slurm wrappers in `scripts/slurm/` load `python/3.11.3`). Python 3.10+ should also work for the scripts; 3.9+ for the `netpip` toolbox itself.
+- **MATLAB R2022b+** for the convergence engine, graph-theory benchmark, and BrainNet renders.
+- **Brain Connectivity Toolbox (BCT, 2019_03_03)** on the MATLAB path — required only for the graph-theory benchmark in `scripts/5_graph_theory_*.m`. Set `BCT_PATH` env var or edit the `bctPath` line inside those scripts.
+- **BrainNet Viewer (v1.7 / build 20191031)** on the MATLAB path — required only for the cortical-surface figures in `scripts/6_render_brainnet_overlap.m`. Set `BRAINNET_PATH` env var if it isn't auto-detected.
+- **Python deps for the analysis scripts**: `numpy`, `scipy`, `h5py`, `matplotlib`, `pandas`, `seaborn`, `networkx`, `nilearn`, `matplotlib_venn`. The easiest way is to install the toolbox extras:
+  ```bash
+  python3 -m venv .venv
+  source .venv/bin/activate
+  pip install --upgrade pip
+  pip install -e netpip[all,dev]
+  pip install nilearn matplotlib_venn seaborn pandas
+  ```
 
-A Slurm-managed HPC cluster is used in the paper for the per-subject MATLAB convergence runs; the Python toolbox can run the same algorithm interactively on a laptop for smaller graphs.
-
-## 1. Clone and create environments
-
+Run the toolbox unit tests + quickstart to make sure your environment is sane:
 ```bash
-git clone https://github.com/your-org/NetPiP.git
-cd NetPiP
-
-# Reproducible Python environment for the analysis (the toolbox is also pip-installable
-# on its own; this venv pins the exact stack used to generate the figures)
-python3 -m venv analysis/giant_component_avg_nonexcluded/.venv
-analysis/giant_component_avg_nonexcluded/.venv/bin/pip install --upgrade pip
-analysis/giant_component_avg_nonexcluded/.venv/bin/pip install \
-    -r analysis/giant_component_avg_nonexcluded/requirements-lock.txt
-analysis/giant_component_avg_nonexcluded/.venv/bin/pip install -e netpip[all,dev]
+pytest netpip/tests -q
+python netpip/examples/quickstart.py
 ```
 
-Verify the toolbox installation:
+## 2. Input data
 
-```bash
-analysis/giant_component_avg_nonexcluded/.venv/bin/pytest netpip/tests -q
-analysis/giant_component_avg_nonexcluded/.venv/bin/python netpip/examples/quickstart.py
-```
+The repository ships everything you need to reproduce the paper figures *from the giant-75 matrices forward*:
 
-## 2. Inputs
-
-| What | Where | How produced |
+| Item | Path | Notes |
 |---|---|---|
-| Per-subject broadband PSI binary adjacencies | `data/PSI_broadband_MEG_mats/*_broadband_psi_adj.mat` | Upstream MEG → PSI pipeline (Kadis lab; see manuscript Methods §1). Each MAT contains `psi_adj` (66 × 66, binarized at `|PSInorm| ≥ 2`, L2 across bands). **These files are not redistributed in this repository.** |
-| Inclusion table | `results/consensus_5pct/attack_outliers.csv` | Manual QC; rows with `excluded == True` (AD15, AD16) are dropped |
-| 66-node AAL labels | `data/MNI_66_AAL_onelinestructure.csv` | One row per node |
-| 66-node MNI coordinates | `data/MNI_66_coords.txt` | One row per node, `x y z` in mm |
+| Per-subject raw PSI (binary) | `data/PSI_broadband_MEG_mats/AD0?_broadband_psi_adj.mat` | Upstream MEG outputs — kept for full traceability |
+| Per-subject giant-75 input | `data/PSI_broadband_MEG_mats/per_subject_giant75_nonexcluded/AD??_..._giant75.mat` | **Pipeline starts here** for per-subject analyses |
+| Group-average giant-75 input | `data/PSI_broadband_MEG_mats/avg/AVG_broadband_psi_adj_giant75_nonexcluded.mat` | **Pipeline starts here** for group-average analyses |
+| 66-node MNI coords | `data/MNI_66_coords.txt` | Used by `3_plot_pip_surfaces.py` + brain plots |
+| AAL labels | `data/MNI_66_AAL_onelinestructure.csv` | Used by `helpers/label_cluster_nodes.py` |
+| Inclusion table | `results/pip_cluster/attack_outliers.csv` | Manual QC; rows with `excluded == True` (AD15, AD16) are dropped from group analyses |
 
-## 3. Pipeline (step-by-step)
+## 3. The pipeline
 
-The full pipeline is summarized in [`analysis/giant_component_avg_nonexcluded/README.md`](analysis/giant_component_avg_nonexcluded/README.md). The minimum commands to reproduce the **giant-component group-average leg** are:
+Each step has a numbered script. On HPC, use the matching wrapper under `scripts/slurm/`; on a workstation, run the Python/MATLAB driver directly.
+
+### Step 1 — build the giant-75 inputs (optional rebuild from raw PSI)
+The giant-75 matrices are already in `data/`. To rebuild them from raw PSI:
 
 ```bash
-# (a) Per-subject giant-component (≥75%) thresholding
-python scripts/make_per_subject_psi_giant75_nonexcluded.py \
-    --pip-root data/PSI_broadband_MEG_mats \
-    --outlier-csv results/consensus_5pct/attack_outliers.csv
+python scripts/1_make_giant75_per_subject.py \
+    --indir  data/PSI_broadband_MEG_mats \
+    --outdir data/PSI_broadband_MEG_mats/per_subject_giant75_nonexcluded \
+    --outlier-csv results/pip_cluster/attack_outliers.csv
 
-# (b) Group-average giant-component thresholding
-python scripts/make_avg_psi_giantcomp_nonexcluded.py \
-    --pip-root data/PSI_broadband_MEG_mats \
-    --outlier-csv results/consensus_5pct/attack_outliers.csv \
-    --out-file data/PSI_broadband_MEG_mats/avg/AVG_broadband_psi_adj_giant75_nonexcluded.mat
+python scripts/1_make_giant75_avg.py \
+    --indir  data/PSI_broadband_MEG_mats \
+    --outlier-csv results/pip_cluster/attack_outliers.csv \
+    --out-mat data/PSI_broadband_MEG_mats/avg/AVG_broadband_psi_adj_giant75_nonexcluded.mat
+```
 
-# (c) PiP convergence on the average graph
-#     Either: launch the Slurm job (HPC)
-sbatch scripts/slurm_pip_converge_avg_nonexcluded_giant_enforcehw05.sh
+`scripts/1_threshold_giant75.m` is the MATLAB equivalent of the per-subject thresholder.
 
-#     Or: run the Python port on a single matrix (laptop)
-python - <<'PY'
-import scipy.io as sio
-from netpip import validate_adjacency, run_pip
-m = sio.loadmat('data/PSI_broadband_MEG_mats/avg/AVG_broadband_psi_adj_giant75_nonexcluded.mat')
-A = m['psi_adj'].astype(float)
-validate_adjacency(A, min_giant_fraction=0.75)
-res = run_pip(A, max_attacks=1_000_000, chunk_size=10_000, seed=12345, enforce_hw95=False)
-sio.savemat(
-    'data/PSI_broadband_MEG_mats/results_converge_giant_avg_nonexcluded/'
-    'AVG_broadband_psi_adj_giant75_nonexcluded_ConvHW.mat',
-    {'node_P': res.node_P, 'counts_per_step': res.counts_per_step,
-     'part_counts': res.part_counts, 'meta': res.meta}, do_compression=True)
-PY
+### Step 2 — run PiP convergence
 
-# (d) Per-subject PiP convergence (HPC array job)
-sbatch scripts/slurm_pip_converge_giant75_per_subject.sh
+```bash
+# group average
+sbatch scripts/slurm/2_pip_converge_avg.sh
 
-# (e) Tilted-peak ranking + cluster hubs + brain figures
-python scripts/plot_pip_surfaces.py                # 2D / 3D PiP surfaces
-python scripts/avg_percolation_metrics_brain_jaccard.py \
-    --perc-csv results/avg_metric_overlap/avg_percolation_points_matlab.csv \
-    --top-n-from pip --jaccard-n-from metric
+# per-subject (one array job over the 19 non-excluded subjects)
+sbatch scripts/slurm/2_pip_converge_per_subject.sh
+```
 
-# (f) BCT-based metric benchmarks (MATLAB, requires BCT on path)
-matlab -batch "addpath('scripts'); compare_pip_bct_percolation_avg_single"
-matlab -batch "addpath('scripts'); compare_pip_bct_percolation_giant75"
+Outputs land in:
+- `results/pip_convergence/avg_giant75/AVG_broadband_psi_adj_giant75_nonexcluded_ConvHW.mat`
+- `results/pip_convergence/per_subject_giant75/AD??_broadband_psi_adj_giant75_ConvHW.mat`
 
-# (g) BrainNet Viewer cortical figures (MATLAB, requires BrainNet Viewer on path)
-matlab -batch "addpath('scripts'); render_brainnet_overlap_tifs"
+Each `*_ConvHW.mat` contains the converged `node_P` matrix (steps × nodes) plus Wilson 95 % half-width history. These files are checked into the repo so you can skip step 2 entirely if you only want the downstream analyses.
+
+### Step 3 — plot the weighted PiP matrix (PiP surfaces)
+```bash
+sbatch scripts/slurm/3_plot_pip_surfaces.sh
+# or, directly:
+python scripts/3_plot_pip_surfaces.py \
+  --results-dir results/pip_convergence/avg_giant75 \
+  --out-root    figures/pip_surfaces/avg_giant75 \
+  --tag postHW_giant_avg_nonexcluded \
+  --include-prefix AVG
+```
+
+### Step 4 — cluster the PiP trajectories to identify the hub set
+```bash
+python scripts/4_cluster_pip_set.py \
+  --pip-mat results/pip_convergence/avg_giant75/AVG_broadband_psi_adj_giant75_nonexcluded_ConvHW.mat \
+  --out-dir figures/pip_cluster/avg_giant75 \
+  --k-min 2 --k-max 10 \
+  | tee results/pip_cluster/avg_giant75_top_cluster_nodes.txt
+
+python scripts/helpers/label_cluster_nodes.py \
+  --labels-csv  data/MNI_66_AAL_onelinestructure.csv \
+  --indices-csv figures/pip_cluster/avg_giant75/AVG_broadband_psi_adj_giant75_nonexcluded_ConvHW_top_cluster_nodes.csv \
+  --out-csv     results/pip_cluster/avg_giant75_top_cluster_nodes_labeled.csv
+```
+
+Per-subject consensus cluster:
+```bash
+python scripts/4_consensus_cluster_per_subject.py \
+  --results-dir results/pip_convergence/per_subject_giant75 \
+  --out-dir     figures/pip_cluster/per_subject
+```
+
+### Step 5 — graph-theory benchmark (Degree, Betweenness, PageRank)
+```matlab
+addpath('scripts');
+run('scripts/5_graph_theory_avg.m');          % single AVG graph
+run('scripts/5_graph_theory_per_subject.m');  % all 19 subjects + group stats
+```
+Writes `results/graph_theory_overlap/avg_percolation_points_matlab.csv` and per-subject MAT/CSV summaries. BCT must be on the path (set `BCT_PATH` env var).
+
+### Step 6 — Jaccard overlap, Venn diagrams, BrainNet renders
+```bash
+# Export the AVG PiP attack order to a MATLAB-readable CSV
+python scripts/6_export_pip_order.py \
+  --conv-mat results/pip_convergence/avg_giant75/AVG_broadband_psi_adj_giant75_nonexcluded_ConvHW.mat \
+  --out-csv  results/pip_cluster/AVG_giant75_PiP_2d_label_order_matlab.csv \
+  --out-txt  results/pip_cluster/AVG_giant75_PiP_2d_label_order_matlab_nodes.txt
+
+# Per-subject PiP-order matrix (used by 5_graph_theory_per_subject.m)
+python scripts/6_export_pip_order.py \
+  --results-dir results/pip_convergence/per_subject_giant75 \
+  --exclude-avg \
+  --out-matrix-csv results/pip_convergence/per_subject_giant75/giant75_per_subject_pip2d_order_matlab_noheader.csv
+
+# Python-side overlap analysis (PiP vs Degree/Betweenness/PageRank)
+python scripts/6_jaccard_overlap.py \
+  --perc-csv results/graph_theory_overlap/avg_percolation_points_matlab.csv \
+  --top-n-from metric
+```
+Then in MATLAB, with BrainNet Viewer on the path:
+```matlab
+run('scripts/6_render_brainnet_overlap.m');
 ```
 
 ## 4. Expected outputs
 
-| Figure / table | File |
+After running steps 2 – 6 you should see:
+
+| Output | Path |
 |---|---|
-| Per-subject PiP-vs-metric percolation point (violin + bar) | `results/avg_metric_overlap/avg_percolation_point_bar.png` |
-| PiP vs metric Jaccard overlap | `results/avg_metric_overlap/avg_jaccard_bar.png`, `jaccard_topn.txt` |
-| PiP / Degree / Betweenness / PageRank top-n brain plots | `results/avg_metric_overlap/brain_top0?_*.png` |
-| PiP-vs-metric Venn diagrams | `results/avg_metric_overlap/venn_pip_vs_*.png` |
-| BrainNet-rendered overlap TIFs | `results/avg_metric_overlap/brainnet_overlap_pip_vs_*.tif` |
-| Average-graph PiP cluster hubs (labeled) | `results/consensus_5pct/avg_giant_nonexcluded_top_cluster_nodes_labeled.csv` |
-| Supp. Figure S1 (binary group adjacency) | `analysis/giant_component_avg_nonexcluded/figures/FigureS1_giant75_avg_binary_adjacency.png` |
+| Converged PiP `node_P` (avg + 19 subjects) | `results/pip_convergence/avg_giant75/`, `results/pip_convergence/per_subject_giant75/` |
+| PiP surfaces (2D / 3D weighted-matrix views) | `figures/pip_surfaces/avg_giant75/` |
+| PiP cluster figures + per-node CSV | `figures/pip_cluster/avg_giant75/` |
+| Average-graph PiP cluster hubs (labeled) | `results/pip_cluster/avg_giant75_top_cluster_nodes_labeled.csv` |
+| Convergence summary | `results/pip_cluster/avg_giant75_convergence_summary.csv` |
+| Per-subject PiP vs metric percolation-point bar/violin | `results/graph_theory_overlap/avg_percolation_point_bar.png` |
+| PiP vs metric Jaccard overlap | `results/graph_theory_overlap/avg_jaccard_bar.png`, `jaccard_topn.txt` |
+| Top-n brain plots (PiP / Degree / Betweenness / PageRank) | `results/graph_theory_overlap/brain_top0?_*.png` |
+| PiP-vs-metric Venn diagrams | `results/graph_theory_overlap/venn_pip_vs_*.png` |
+| BrainNet-rendered overlap TIFs | `results/graph_theory_overlap/brainnet_overlap_pip_vs_*.tif` |
+| Supplementary Fig. S1 (binary giant-75 group adjacency) | `figures/FigureS1_giant75_avg_binary_adjacency.png` |
 
-## 5. Methods text
+## 5. Troubleshooting
 
-Paper-ready methods prose is maintained in [`analysis/giant_component_avg_nonexcluded/METHODS.md`](analysis/giant_component_avg_nonexcluded/METHODS.md) and covers: PSI matrix construction, group averaging, giant-component thresholding (per-subject and group), the PiP Monte Carlo engine, convergence, the tilted-peak ranking, Ward + silhouette hub clustering, and the BCT-based metric benchmarks.
-
-## 6. Troubleshooting
-
-- **`netpip` import fails after install**: confirm you installed in the right venv: `which python; which pytest`.
-- **Slurm jobs can't find data**: set `PIP_ROOT` and `NETPIP_ROOT` env vars to your data root before `sbatch`.
-- **BCT functions not found in MATLAB**: `export BCT_PATH=/path/to/BCT/2019_03_03_BCT` before launching MATLAB, or edit `bctPath` at the top of `scripts/compare_pip_bct_percolation_*.m`.
-- **BrainNet Viewer crashes**: install v1.7 build 20191031; set `BRAINNET_PATH` env var; the surface mesh defaults to `Data/SurfTemplate/BrainMesh_ICBM152.nv`.
+- **`results_converge_*` paths in old code/notebooks** — these moved to `results/pip_convergence/`. The numbered scripts and Slurm wrappers in this repo are already updated.
+- **MATLAB v7.3 (HDF5) MAT files** — `scripts/3_plot_pip_surfaces.py`, `scripts/6_export_pip_order.py`, and `scripts/6_jaccard_overlap.py` use a `load_pip_any` helper that falls back to `h5py`. Make sure `h5py` is installed.
+- **BrainNet renders fail** — make sure `BRAINNET_PATH` points to a folder containing `BrainNet_MapCfg.m`. The default surface is `BrainMesh_ICBM152.nv` under `BRAINNET_PATH/Data/SurfTemplate/`; override with `BRAINNET_SURFACE_NV` if needed.
+- **`from helpers.pip_plot_utils import ...` fails** — the numbered scripts inject `scripts/` into `sys.path` at the top; if you copied a script outside the repo, copy `scripts/helpers/pip_plot_utils.py` along with it, or import directly from the `netpip` toolbox.

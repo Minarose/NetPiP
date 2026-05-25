@@ -1,1 +1,0 @@
-../../../scripts/make_avg_psi_giantcomp_nonexcluded.py
