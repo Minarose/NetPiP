@@ -1,2 +1,33 @@
 logs/*
 !logs/.gitkeep
+
+# Leg-local Python venv (reproducible installs; see analysis/giant_component_avg_nonexcluded/README.md)
+analysis/giant_component_avg_nonexcluded/.venv/
+
+# Root-level virtualenvs (used for netpip toolbox development & testing)
+.venv/
+.venv-*/
+
+# Python build artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+build/
+dist/
+*.egg-info/
+*.egg
+
+# macOS / editor noise
+.DS_Store
+.idea/
+.vscode/
+
+# MATLAB autosave / cache
+*.asv
+*.m~

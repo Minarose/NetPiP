@@ -1,0 +1,85 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "netpip"
+version = "0.1.0"
+description = "Participation in Percolation (PiP): a data-driven measure of network hubs based on Monte Carlo node-removal attacks."
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+authors = [
+    { name = "Minarose Ismail" },
+    { name = "Brady J. Williamson" },
+    { name = "Darren S. Kadis" },
+]
+keywords = [
+    "network neuroscience",
+    "graph theory",
+    "percolation",
+    "hub identification",
+    "brain networks",
+    "MEG",
+    "PSI",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Scientific/Engineering :: Bio-Informatics",
+]
+dependencies = [
+    "numpy>=1.24,<3",
+    "scipy>=1.11,<2",
+]
+
+[project.optional-dependencies]
+networkx = ["networkx>=3.2,<4"]
+viz = [
+    "matplotlib>=3.7,<4",
+    "nilearn>=0.10.0,<0.12",
+    "matplotlib-venn>=1.1.1,<2",
+]
+io = ["h5py>=3.10,<4"]
+dev = [
+    "pytest>=7,<9",
+    "pytest-cov>=4,<7",
+    "ruff>=0.5",
+]
+all = [
+    "networkx>=3.2,<4",
+    "matplotlib>=3.7,<4",
+    "nilearn>=0.10.0,<0.12",
+    "matplotlib-venn>=1.1.1,<2",
+    "h5py>=3.10,<4",
+]
+
+[project.urls]
+Homepage = "https://github.com/your-org/NetPiP"
+Source = "https://github.com/your-org/NetPiP"
+Issues = "https://github.com/your-org/NetPiP/issues"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["netpip*"]
+
+[tool.setuptools.package-data]
+netpip = ["py.typed"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py39"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "NPY"]
+ignore = ["E501"]
+
+[tool.pytest.ini_options]
+minversion = "7.0"
+addopts = "-ra --strict-markers"
+testpaths = ["tests"]

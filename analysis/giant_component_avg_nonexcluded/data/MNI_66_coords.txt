@@ -1,0 +1,1 @@
+../../../data/MNI_66_coords.txt

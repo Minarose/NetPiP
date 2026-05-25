@@ -1,0 +1,4 @@
+reference_sets=PiP_cluster_nodes vs metric_top_at_perc_point
+Jaccard(PiP_cluster_n=5, Degree_top7) = 0.333333
+Jaccard(PiP_cluster_n=5, Betweenness_top10) = 0.363636
+Jaccard(PiP_cluster_n=5, PageRank_top6) = 0.375000

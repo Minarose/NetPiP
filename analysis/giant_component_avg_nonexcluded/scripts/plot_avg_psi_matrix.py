@@ -1,0 +1,1 @@
+../../../scripts/plot_avg_psi_matrix.py

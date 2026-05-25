@@ -1,0 +1,29 @@
+cff-version: 1.2.0
+title: "netpip: Participation in Percolation for Network Hub Identification"
+message: "If you use this software, please cite both the software and the accompanying article."
+type: software
+version: 0.1.0
+license: MIT
+repository-code: "https://github.com/your-org/NetPiP"
+authors:
+  - family-names: Ismail
+    given-names: Minarose
+    affiliation: "Hospital for Sick Children, Toronto; University of Toronto"
+  - family-names: Williamson
+    given-names: Brady J.
+    affiliation: "University of Cincinnati College of Medicine"
+  - family-names: Kadis
+    given-names: Darren S.
+    affiliation: "Hospital for Sick Children, Toronto; University of Toronto"
+preferred-citation:
+  type: article
+  title: "Participation in Percolation: A Data-Driven Measure of Network Hubs in Functional Brain Networks"
+  authors:
+    - family-names: Williamson
+      given-names: Brady J.
+    - family-names: Ismail
+      given-names: Minarose
+    - family-names: Kadis
+      given-names: Darren S.
+  year: 2025
+  journal: "TBD"
