@@ -15,6 +15,6 @@ export NETPIP_ROOT=/hpf/projects/dkadis/ismail/NetPiP
 python3 "$NETPIP_ROOT/scripts/1_make_giant75_per_subject.py" \
   --pip-root "$NETPIP_ROOT/data/PSI_broadband_MEG_mats" \
   --outlier-csv "$NETPIP_ROOT/results/pip_cluster/attack_outliers.csv" \
-  --out-dir "$NETPIP_ROOT/data/PSI_broadband_MEG_mats/per_subject_giant75_nonexcluded" \
+  --out-dir "$NETPIP_ROOT/data/PSI_broadband_MEG_mats/individual" \
   --gcc-fraction 0.75 \
   --threshold-steps 1000

@@ -32,9 +32,8 @@ The repository ships everything you need to reproduce the paper figures *from th
 
 | Item | Path | Notes |
 |---|---|---|
-| Per-subject raw PSI (binary) | `data/PSI_broadband_MEG_mats/AD0?_broadband_psi_adj.mat` | Upstream MEG outputs — kept for full traceability |
-| Per-subject giant-75 input | `data/PSI_broadband_MEG_mats/per_subject_giant75_nonexcluded/AD??_..._giant75.mat` | **Pipeline starts here** for per-subject analyses |
-| Group-average giant-75 input | `data/PSI_broadband_MEG_mats/avg/AVG_broadband_psi_adj_giant75_nonexcluded.mat` | **Pipeline starts here** for group-average analyses |
+| Per-subject giant-75 input | `data/PSI_broadband_MEG_mats/individual/AD??_..._giant75.mat` | **Pipeline starts here** for per-subject analyses |
+| Group-average giant-75 input | `data/PSI_broadband_MEG_mats/group_average/AVG_broadband_psi_adj_giant75_nonexcluded.mat` | **Pipeline starts here** for group-average analyses |
 | 66-node MNI coords | `data/MNI_66_coords.txt` | Used by `3_plot_pip_surfaces.py` + brain plots |
 | AAL labels | `data/MNI_66_AAL_onelinestructure.csv` | Used by `helpers/label_cluster_nodes.py` |
 | Inclusion table | `results/pip_cluster/attack_outliers.csv` | Manual QC; rows with `excluded == True` (AD15, AD16) are dropped from group analyses |
@@ -44,18 +43,18 @@ The repository ships everything you need to reproduce the paper figures *from th
 Each step has a numbered script. On HPC, use the matching wrapper under `scripts/slurm/`; on a workstation, run the Python/MATLAB driver directly.
 
 ### Step 1 — build the giant-75 inputs (optional rebuild from raw PSI)
-The giant-75 matrices are already in `data/`. To rebuild them from raw PSI:
+The giant-75 matrices are already in `data/`, so step 1 can be skipped for reproduction. If you want to rebuild them from your own raw `*_broadband_psi_adj.mat` PSI matrices, drop them in `data/PSI_broadband_MEG_mats/` and run:
 
 ```bash
 python scripts/1_make_giant75_per_subject.py \
     --indir  data/PSI_broadband_MEG_mats \
-    --outdir data/PSI_broadband_MEG_mats/per_subject_giant75_nonexcluded \
+    --outdir data/PSI_broadband_MEG_mats/individual \
     --outlier-csv results/pip_cluster/attack_outliers.csv
 
 python scripts/1_make_giant75_avg.py \
     --indir  data/PSI_broadband_MEG_mats \
     --outlier-csv results/pip_cluster/attack_outliers.csv \
-    --out-mat data/PSI_broadband_MEG_mats/avg/AVG_broadband_psi_adj_giant75_nonexcluded.mat
+    --out-mat data/PSI_broadband_MEG_mats/group_average/AVG_broadband_psi_adj_giant75_nonexcluded.mat
 ```
 
 `scripts/1_threshold_giant75.m` is the MATLAB equivalent of the per-subject thresholder.

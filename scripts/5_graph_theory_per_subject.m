@@ -27,7 +27,7 @@ end
 addpath(bctPath);
 
 %% --- Data (relative to repo root) ---
-matDir = fullfile(repoRoot, 'data', 'PSI_broadband_MEG_mats', 'per_subject_giant75_nonexcluded');
+matDir = fullfile(repoRoot, 'data', 'PSI_broadband_MEG_mats', 'individual');
 pipCsv = fullfile(repoRoot, 'results', 'pip_convergence', 'per_subject_giant75', ...
     'giant75_per_subject_pip2d_order_matlab_noheader.csv');
 

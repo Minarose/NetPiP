@@ -22,7 +22,7 @@ export NETPIP_ROOT=/hpf/projects/dkadis/ismail/NetPiP
 SIF=/hpf/projects/imaginglab/matlab/imaging-lab_matlab_r2024b.sif
 SCRIPT=$NETPIP_ROOT/scripts/2_pip_converge.m
 
-export SUBJECT_FILE=avg/AVG_broadband_psi_adj_giant75_nonexcluded.mat
+export SUBJECT_FILE=group_average/AVG_broadband_psi_adj_giant75_nonexcluded.mat
 
 echo ">>> Running avg matrix with enforced HW95 tolerance: $SUBJECT_FILE"
 echo ">>> CPUs: $SLURM_CPUS_PER_TASK  Scratch: $SCRATCH_DIR"

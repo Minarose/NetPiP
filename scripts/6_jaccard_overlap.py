@@ -508,7 +508,7 @@ def main() -> None:
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument(
         "--avg-adj-mat",
-        default=str(repo_root / "data" / "PSI_broadband_MEG_mats" / "avg" / "AVG_broadband_psi_adj_giant75_nonexcluded.mat"),
+        default=str(repo_root / "data" / "PSI_broadband_MEG_mats" / "group_average" / "AVG_broadband_psi_adj_giant75_nonexcluded.mat"),
         help="Average adjacency MAT with `psi_adj` (binary).",
     )
     p.add_argument(

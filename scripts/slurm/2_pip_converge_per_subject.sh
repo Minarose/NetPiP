@@ -13,7 +13,7 @@
 # scripts/1_make_giant75_per_subject.py). Same env style as
 # scripts/slurm/2_pip_converge_avg.sh (THRESH_PROP=1, ENFORCE_HW95=0).
 #
-# Prereq: upload mats to $PIP_ROOT/per_subject_giant75_nonexcluded/
+# Prereq: upload mats to $PIP_ROOT/individual/
 # Edit --array=1-N to match number of *_giant75.mat files (max 30 here; increase if needed).
 
 module load Singularity/3.11.3_slurm
@@ -30,11 +30,11 @@ export NETPIP_ROOT=/hpf/projects/dkadis/ismail/NetPiP
 SIF=/hpf/projects/imaginglab/matlab/imaging-lab_matlab_r2024b.sif
 SCRIPT=$NETPIP_ROOT/scripts/2_pip_converge.m
 
-mapfile -t FILES < <(ls -1 "$PIP_ROOT"/per_subject_giant75_nonexcluded/*_giant75.mat 2>/dev/null | sort)
+mapfile -t FILES < <(ls -1 "$PIP_ROOT"/individual/*_giant75.mat 2>/dev/null | sort)
 SUBJECT_COUNT=${#FILES[@]}
 
 if (( SUBJECT_COUNT == 0 )); then
-    echo "No *_giant75.mat in $PIP_ROOT/per_subject_giant75_nonexcluded/"
+    echo "No *_giant75.mat in $PIP_ROOT/individual/"
     exit 1
 fi
 
@@ -44,7 +44,7 @@ if (( SLURM_ARRAY_TASK_ID > SUBJECT_COUNT )); then
 fi
 
 F="${FILES[$SLURM_ARRAY_TASK_ID-1]}"
-export SUBJECT_FILE="per_subject_giant75_nonexcluded/$(basename "$F")"
+export SUBJECT_FILE="individual/$(basename "$F")"
 
 echo ">>> Running: $SUBJECT_FILE"
 echo ">>> CPUs: $SLURM_CPUS_PER_TASK  Scratch: $SCRATCH_DIR"

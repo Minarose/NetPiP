@@ -4,8 +4,8 @@ Scripts are numbered in pipeline order. Run them top-to-bottom (or use the match
 
 | # | File | Step | Output |
 |---|------|------|--------|
-| 1 | `1_make_giant75_per_subject.py` | Threshold per-subject PSI matrices at 75 % giant-component density | `data/PSI_broadband_MEG_mats/per_subject_giant75_nonexcluded/AD??_..._giant75.mat` |
-| 1 | `1_make_giant75_avg.py`         | Build the cohort-average giant-75 binary graph                     | `data/PSI_broadband_MEG_mats/avg/AVG_..._giant75_nonexcluded.mat`               |
+| 1 | `1_make_giant75_per_subject.py` | Threshold per-subject PSI matrices at 75 % giant-component density | `data/PSI_broadband_MEG_mats/individual/AD??_..._giant75.mat`                   |
+| 1 | `1_make_giant75_avg.py`         | Build the cohort-average giant-75 binary graph                     | `data/PSI_broadband_MEG_mats/group_average/AVG_..._giant75_nonexcluded.mat`     |
 | 1 | `1_threshold_giant75.m`         | MATLAB equivalent of the per-subject thresholder                   | same as `1_make_giant75_per_subject.py`                                         |
 | 2 | `2_pip_converge.m`              | PiP Monte Carlo + Wilson 95 % plateau convergence (HPC-aware)      | `results/pip_convergence/{avg_giant75,per_subject_giant75}/*_ConvHW.mat`        |
 | 3 | `3_plot_pip_surfaces.py`        | 2D / 3D τ = S/6 tilted PiP surfaces (weighted-matrix view)         | `figures/pip_surfaces/avg_giant75/`                                             |

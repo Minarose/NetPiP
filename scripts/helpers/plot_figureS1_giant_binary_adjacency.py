@@ -14,8 +14,15 @@ try:
 except ImportError as exc:  # pragma: no cover
     raise RuntimeError("scipy is required.") from exc
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
-LEG_ROOT = REPO_ROOT / "analysis" / "giant_component_avg_nonexcluded"
+REPO_ROOT = Path(__file__).resolve().parents[2]
+DEFAULT_AVG_MAT = (
+    REPO_ROOT
+    / "data"
+    / "PSI_broadband_MEG_mats"
+    / "group_average"
+    / "AVG_broadband_psi_adj_giant75_nonexcluded.mat"
+)
+DEFAULT_OUT_PNG = REPO_ROOT / "figures" / "FigureS1_giant75_avg_binary_adjacency.png"
 
 
 def load_binary_adj(mat_path):
@@ -31,11 +38,11 @@ def main():
     parser = argparse.ArgumentParser(description="Figure S1 — binary giant-thresholded group adjacency.")
     parser.add_argument(
         "--avg-mat",
-        default=str(LEG_ROOT / "data" / "AVG_broadband_psi_adj_giant75_nonexcluded.mat"),
+        default=str(DEFAULT_AVG_MAT),
     )
     parser.add_argument(
         "--out",
-        default=str(LEG_ROOT / "figures" / "FigureS1_giant75_avg_binary_adjacency.png"),
+        default=str(DEFAULT_OUT_PNG),
     )
     parser.add_argument("--dpi", type=int, default=400)
     args = parser.parse_args()

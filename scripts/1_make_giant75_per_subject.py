@@ -77,7 +77,7 @@ def main():
     parser.add_argument(
         "--out-dir",
         default=None,
-        help="Output directory (default: <pip-root>/per_subject_giant75_nonexcluded).",
+        help="Output directory (default: <pip-root>/individual).",
     )
     parser.add_argument("--gcc-fraction", type=float, default=0.75)
     parser.add_argument("--threshold-steps", type=int, default=1000)
@@ -93,7 +93,7 @@ def main():
     load_subject_matrix = gmod.load_subject_matrix
 
     pip_root = Path(args.pip_root)
-    out_dir = Path(args.out_dir) if args.out_dir else pip_root / "per_subject_giant75_nonexcluded"
+    out_dir = Path(args.out_dir) if args.out_dir else pip_root / "individual"
     out_dir.mkdir(parents=True, exist_ok=True)
 
     if args.all_mats:
