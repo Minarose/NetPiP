@@ -8,26 +8,24 @@
 
 > **A data-driven measure of network hubs based on Monte Carlo node-removal attacks and percolation-based collapse analysis.**
 
-Brady J. Williamson¹, Minarose Ismail²,³, Darren S. Kadis²,³
+Minarose Ismail¹,², Brady J. Williamson³, Hansel M. Greiner4, Darren S. Kadis¹,²
 
-¹ University of Cincinnati College of Medicine, Department of Radiology
+¹ Department of Physiology, University of Toronto
 ² Neurosciences and Mental Health, Hospital for Sick Children, Toronto
-³ Department of Physiology, University of Toronto
-
+³ University of Cincinnati College of Medicine, Department of Radiology
+4 Department of Pediatrics, College of Medicine, University of Cincinnati
 ---
 
-This repository contains everything needed to reproduce the manuscript *"Participation in Percolation: A Data-Driven Measure of Network Hubs in Functional Brain Networks"* (Williamson et al., 202x) **and** a reusable Python / MATLAB toolbox so anyone can apply PiP to their own networks.
-
-The paper pipeline is intentionally narrow: starting from per-subject **75 % giant-component** binary PSI matrices, it runs PiP, plots the weighted PiP matrix, clusters to identify the PiP hub set, benchmarks against classical graph-theory hub metrics (Degree, Betweenness, PageRank), and quantifies the overlap with Jaccard similarity. Nothing else.
+This repository contains everything needed to reproduce the manuscript *"Participation in Percolation (PiP): A Probabilistic Attack-Based Hub Metric"* (Ismail et al., 202x) **and** a reusable Python / MATLAB toolbox so anyone can apply PiP to their own networks.
 
 ## Repository layout
 
 ```
 NetPiP/
 ├── netpip/             # pip-installable Python toolbox (validate, run_pip, ranking, clustering, metrics)
-├── matlab/             # MATLAB sibling toolbox (+netpip namespace)
+├── matlab/             # MATLAB toolbox
 ├── scripts/            # Paper-reproduction scripts, numbered 1_ .. 6_ in pipeline order
-│   ├── 1_*.{py,m}      # Build giant-75 binary matrices from PSI inputs
+│   ├── 1_*.{py,m}      # Build binary matrices from PSI inputs
 │   ├── 2_*.m           # PiP convergence engine (HPC-aware)
 │   ├── 3_*.py          # PiP surfaces / weighted matrix plots
 │   ├── 4_*.py          # Cluster PiP trajectories -> hub set
@@ -35,7 +33,7 @@ NetPiP/
 │   ├── 6_*.{py,m}      # Jaccard + overlap analysis, BrainNet renders
 │   ├── helpers/        # Shared utilities + standalone validations
 │   └── slurm/          # Slurm job wrappers, same 1_..6_ numbering
-├── data/               # Inputs (start point = 75% giant-component matrices)
+├── data/               # Inputs (start point = binary matrices)
 ├── results/            # Convergence outputs, cluster CSVs, overlap CSVs/figures
 ├── figures/            # Paper figures (PiP surfaces, cluster, PSI matrices, FigS1)
 ├── REPRODUCING.md      # End-to-end reproduction guide
@@ -65,7 +63,7 @@ The numbered scripts in `scripts/` follow exactly the order used in the paper:
 
 Each Slurm wrapper in `scripts/slurm/` uses the same number prefix (`2_pip_converge_avg.sh`, `3_plot_pip_surfaces.sh`, …).
 
-## Quickstart (toolbox — no MEG data required)
+## Quickstart (toolbox)
 
 ### Python
 ```bash
@@ -95,33 +93,12 @@ pp  = netpip.percolation_point(A, order);
 hub = order(1:pp);
 ```
 
-## What the toolbox does *not* do
-
-Both toolboxes **operate on a pre-built binary adjacency matrix** that you supply. They validate it (binary, symmetric, zero diagonal, sparse, giant component present) and error out if it is malformed — but they **never modify it**: no thresholding, no binarization, no symmetrization, no giant-component extraction. The 75 % giant-component thresholding used in the paper lives in `scripts/1_*` and is described in `REPRODUCING.md`.
-
-This separation is intentional: PiP is a generic graph-theoretic hub measure that applies to any binary undirected network (functional brain networks, structural connectomes, social networks, infrastructure networks, …) and the toolbox is meant to be a small drop-in dependency.
 
 ---
 
 ## Citation
 
-```bibtex
-@software{netpip,
-  author  = {Ismail, Minarose and Williamson, Brady J. and Kadis, Darren S.},
-  title   = {netpip: Participation in Percolation for Network Hub Identification},
-  year    = {2025},
-  url     = {https://github.com/your-org/NetPiP},
-  version = {0.1.0}
-}
-
-@article{williamson_pip,
-  author  = {Williamson, Brady J. and Ismail, Minarose and Kadis, Darren S.},
-  title   = {Participation in Percolation: A Data-Driven Measure of Network Hubs
-             in Functional Brain Networks},
-  year    = {202x},
-  journal = {TBD}
-}
-```
+Coming soon...
 
 ## License
 
