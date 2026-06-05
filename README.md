@@ -8,12 +8,13 @@
 
 > **A data-driven measure of network hubs based on Monte Carlo node-removal attacks and percolation-based collapse analysis.**
 
-Minarose Ismail¹,², Brady J. Williamson³, Hansel M. Greiner4, Darren S. Kadis¹,²
+Minarose Ismail¹,², Brady J. Williamson³, Hansel M. Greiner⁴, Darren S. Kadis¹,²
 
-¹ Department of Physiology, University of Toronto
-² Neurosciences and Mental Health, Hospital for Sick Children, Toronto
-³ University of Cincinnati College of Medicine, Department of Radiology
-4 Department of Pediatrics, College of Medicine, University of Cincinnati
+¹ Department of Physiology, University of Toronto  
+² Neurosciences and Mental Health, Hospital for Sick Children, Toronto  
+³ University of Cincinnati College of Medicine, Department of Radiology  
+⁴ Department of Pediatrics, College of Medicine, University of Cincinnati
+
 ---
 
 This repository contains everything needed to reproduce the manuscript *"Participation in Percolation (PiP): A Probabilistic Attack-Based Hub Metric"* (Ismail et al., 202x) **and** a reusable Python / MATLAB toolbox so anyone can apply PiP to their own networks.
