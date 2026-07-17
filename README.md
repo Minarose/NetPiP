@@ -3,7 +3,7 @@
 <p align="center">
   <img src="figures/pip_surface_rotation.gif" alt="Rotating 360 view of the group-average Participation-in-Percolation surface" width="640">
   <br>
-  <em>Group-average PiP surface (giant-75, n = 19) &mdash; 360&deg; rotation of the &tau; = S/6 tilted node_P matrix.</em>
+  <em>Group-average PiP surface (n = 19) of expressive language network.</em>
 </p>
 
 > **A data-driven measure of network hubs based on Monte Carlo node-removal attacks and percolation-based collapse analysis.**
@@ -47,7 +47,7 @@ There are two ways to use this repository:
 | You want to ... | Read |
 |---|---|
 | Apply PiP to your own binary adjacency matrices (no MEG data required) | [`netpip/README.md`](netpip/README.md) for Python, [`matlab/README.md`](matlab/README.md) for MATLAB |
-| Reproduce the manuscript figures from the bundled giant-75 matrices | [`REPRODUCING.md`](REPRODUCING.md) and the numbered scripts under `scripts/` |
+| Reproduce the manuscript figures | [`REPRODUCING.md`](REPRODUCING.md) and the numbered scripts under `scripts/` |
 
 ## The reproduction pipeline at a glance
 
@@ -57,7 +57,7 @@ The numbered scripts in `scripts/` follow exactly the order used in the paper:
 |------|-----------|--------------|
 | **1** | `1_make_giant75_per_subject.py`, `1_make_giant75_avg.py`, `1_threshold_giant75.m` | Threshold per-subject PSI matrices at 75 % giant-component density; build the cohort-average graph |
 | **2** | `2_pip_converge.m` | Run the PiP Monte Carlo engine (Wilson 95 % plateau convergence) and save `node_P` |
-| **3** | `3_plot_pip_surfaces.py` | Plot 2D / 3D τ = S/6 tilted PiP surfaces (the "weighted matrix" view) |
+| **3** | `3_plot_pip_surfaces.py` | Plot 2D / 3D PiP surfaces (the "weighted matrix" view) |
 | **4** | `4_cluster_pip_set.py`, `4_consensus_cluster_per_subject.py` | Ward + silhouette clustering on tilted trajectories → identify PiP hub set |
 | **5** | `5_graph_theory_avg.m`, `5_graph_theory_per_subject.m` | Degree / Betweenness / PageRank percolation-point benchmarks (BCT) |
 | **6** | `6_export_pip_order.py`, `6_jaccard_overlap.py`, `6_render_brainnet_overlap.m` | Export PiP order, compute Jaccard / Venn overlaps, render BrainNet cortical figures |
