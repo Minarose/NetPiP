@@ -28,7 +28,7 @@ NetPiP/
 ├── scripts/            # Paper-reproduction scripts, numbered 1_ .. 6_ in pipeline order
 │   ├── 1_*.{py,m}      # Build binary matrices from PSI inputs
 │   ├── 2_*.m           # PiP convergence engine (HPC-aware)
-│   ├── 3_*.py          # PiP surfaces / weighted matrix plots
+│   ├── 3_*.py          # PiP surfaces plots
 │   ├── 4_*.py          # Cluster PiP trajectories -> hub set
 │   ├── 5_*.m           # Degree/Betweenness/PageRank benchmarks (BCT)
 │   ├── 6_*.{py,m}      # Jaccard + overlap analysis, BrainNet renders
@@ -57,8 +57,8 @@ The numbered scripts in `scripts/` follow exactly the order used in the paper:
 |------|-----------|--------------|
 | **1** | `1_make_giant75_per_subject.py`, `1_make_giant75_avg.py`, `1_threshold_giant75.m` | Threshold per-subject PSI matrices at 75 % giant-component density; build the cohort-average graph |
 | **2** | `2_pip_converge.m` | Run the PiP Monte Carlo engine (Wilson 95 % plateau convergence) and save `node_P` |
-| **3** | `3_plot_pip_surfaces.py` | Plot 2D / 3D PiP surfaces (the "weighted matrix" view) |
-| **4** | `4_cluster_pip_set.py`, `4_consensus_cluster_per_subject.py` | Ward + silhouette clustering on tilted trajectories → identify PiP hub set |
+| **3** | `3_plot_pip_surfaces.py` | Plot 2D / 3D PiP surfaces|
+| **4** | `4_cluster_pip_set.py`, `4_consensus_cluster_per_subject.py` | Ward + silhouette clustering on PiP surfaces → identify PiP hub set |
 | **5** | `5_graph_theory_avg.m`, `5_graph_theory_per_subject.m` | Degree / Betweenness / PageRank percolation-point benchmarks (BCT) |
 | **6** | `6_export_pip_order.py`, `6_jaccard_overlap.py`, `6_render_brainnet_overlap.m` | Export PiP order, compute Jaccard / Venn overlaps, render BrainNet cortical figures |
 
