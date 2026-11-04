@@ -1,0 +1,16 @@
+{
+  "network": "airport",
+  "title": "Global airport network",
+  "nodes": 3214,
+  "edges": 18858,
+  "adjacency_sha256": "aa7edf0bcfe98f188df956c0e4e95b40a28a232df4b28e6e790451e49bfdff7e",
+  "attacks": 1000000000,
+  "seed": 2026092400,
+  "rng": "numpy.random.default_rng (PCG64), rng.permuted(np.tile(arange(N), (batch, 1)), axis=1)",
+  "batch": 2000,
+  "threads": 8,
+  "elapsed_seconds": 148060.980401375,
+  "snapshots": [],
+  "note": "Airport counts are the 1-billion checkpoint of a 3-billion-attack run with the same seed; elapsed_seconds is for the full 3-billion run. Milestone snapshots are too large for git, so results/paper_1B/airport/rms.csv stores the RMS values computed from them.",
+  "attack_orders": "1-based node orders; Degree/Betweenness/PageRank have 500 tie-breaking orders (scores rounded to 12 decimals); orders are the exact ones behind Fig. 4."
+}

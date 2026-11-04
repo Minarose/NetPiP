@@ -1,43 +1,22 @@
-% netpip MATLAB quickstart: PiP on a small synthetic graph.
-% Run from the repository root after `addpath('matlab')`.
+%QUICKSTART PiP on Zachary's karate club network (MATLAB).
+%   Run from the repository's matlab/ folder:  addpath(pwd); run examples/quickstart.m
+here = fileparts(mfilename('fullpath'));
+addpath(fullfile(here, '..'));
+E = readmatrix(fullfile(here, '..', '..', 'examples', 'example_data', 'karate_edges.csv'));
+A = zeros(34); A(sub2ind([34 34], E(:,1), E(:,2))) = 1; A = max(A, A.');
 
-addpath(fullfile(fileparts(mfilename('fullpath')), '..'));
+% Sample random attacks (the paper used 1e9 in Python; 1e5 is quick here).
+result = netpip.run_pip(A, 1e5, 'Seed', 1, 'Checkpoints', [1e4 5e4]);
 
-% Build a 'barbell' graph: two K4 cliques joined by one bridge edge.
-n = 8;
-A = zeros(n);
-for i = 1:4
-    for j = i+1:4
-        A(i, j) = 1; A(j, i) = 1;
-    end
-end
-for i = 5:8
-    for j = i+1:8
-        A(i, j) = 1; A(j, i) = 1;
-    end
-end
-A(4, 5) = 1; A(5, 4) = 1;
+% Score and rank nodes by linear-weighted PiP.
+scores = netpip.pip_scores(result.counts, result.hits, 'linear');
+[~, rankOrder] = sort(scores, 'descend');
+fprintf('Most critical nodes: %s\n', mat2str(rankOrder(1:5).'));
 
-fprintf('Validating input adjacency (read-only)...\n');
-report = netpip.validate_adjacency(A, 'MinGiantFraction', 0.75);
-disp(report);
+% Convergence: RMS change between checkpoints (paper threshold 0.005).
+snaps = [result.snapshots, struct('attacks', result.nAttacks, 'counts', result.counts, 'hits', result.hits)];
+disp(netpip.rms_convergence(snaps));
 
-fprintf('Running PiP Monte Carlo (small budget for the demo)...\n');
-res = netpip.run_pip(A, ...
-    'MaxAttacks', 2000, ...
-    'ChunkSize', 500, ...
-    'Seed', 0, ...
-    'Verbose', true);
-fprintf('  attacks=%d  converged=%d  elapsed=%.2fs\n', ...
-    res.n_attacks, res.converged, res.elapsed_sec);
-
-fprintf('\nTilted-peak ranking:\n');
-[order, peak_step, peak_amp] = netpip.tilted_peak_rank(res.node_P);
-for r = 1:numel(order)
-    fprintf('  rank %2d  node %2d  peak_step=%2d  amp=%.4f\n', ...
-        r, order(r), peak_step(order(r)), peak_amp(order(r)));
-end
-
-fprintf('\nPiP percolation point and top-n hub set:\n');
-pp = netpip.percolation_point(A, order);
-fprintf('  perc_point = %d  hub nodes = %s\n', pp, mat2str(order(1:pp)));
+% Targeted attack ordered by PiP.
+out = netpip.evaluate_attacks(A, netpip.attack_orders(scores));
+fprintf('PiP-ordered attack reaches the percolation point after %g removals\n', out.peak_removals);

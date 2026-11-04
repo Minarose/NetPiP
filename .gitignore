@@ -28,3 +28,10 @@ dist/
 # MATLAB autosave / cache
 *.asv
 *.m~
+
+# Downloaded third-party raw data (rebuilt by data/build_networks.py)
+data/raw/downloads/
+
+# Outputs of reproduce/ and examples/
+reproduce/output/
+pip_output/

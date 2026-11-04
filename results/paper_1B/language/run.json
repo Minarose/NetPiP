@@ -1,0 +1,26 @@
+{
+  "network": "language",
+  "title": "Brain language network",
+  "nodes": 66,
+  "edges": 113,
+  "adjacency_sha256": "64e32374028765c9756d9d1ac24d5179829638e1a3feeb3d6a80d3345e24ad99",
+  "attacks": 1000000000,
+  "seed": 2026092409,
+  "rng": "numpy.random.default_rng (PCG64), rng.permuted(np.tile(arange(N), (batch, 1)), axis=1)",
+  "batch": 10000,
+  "threads": 4,
+  "elapsed_seconds": 870.9066302089996,
+  "snapshots": [
+    1000000,
+    10000000,
+    25000000,
+    50000000,
+    100000000,
+    250000000,
+    500000000,
+    750000000,
+    1000000000
+  ],
+  "note": "",
+  "attack_orders": "1-based node orders; Degree/Betweenness/PageRank have 500 tie-breaking orders (scores rounded to 12 decimals); orders are the exact ones behind Fig. 4."
+}

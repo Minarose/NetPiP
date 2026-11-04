@@ -1,0 +1,18 @@
+# Conda environment matching the versions used for the paper's analyses.
+#   conda env create -f environment.yml && conda activate netpip
+#   pip install -e .
+name: netpip
+channels:
+  - conda-forge
+dependencies:
+  - python=3.12
+  - numpy=2.3
+  - scipy=1.18
+  - numba=0.67
+  - networkx=3.6
+  - matplotlib=3.11
+  - pillow
+  - pytest
+  - pip
+  - pip:
+      - bctpy==0.6.1

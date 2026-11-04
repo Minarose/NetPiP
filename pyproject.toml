@@ -1,0 +1,52 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "netpip"
+version = "1.0.0"
+description = "Participation in Percolation (PiP): a probabilistic metric for identifying critical nodes in complex networks."
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+authors = [
+    { name = "Minarose M. Ismail" },
+    { name = "Brady J. Williamson" },
+    { name = "Hansel M. Greiner" },
+    { name = "Darren S. Kadis" },
+]
+keywords = ["network science", "percolation", "critical nodes", "network robustness", "graph theory"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Topic :: Scientific/Engineering",
+]
+dependencies = [
+    "numpy>=1.24",
+    "scipy>=1.10",
+    "numba>=0.58",
+]
+
+[project.optional-dependencies]
+centrality = ["bctpy>=0.6", "networkx>=3.0"]
+plot = ["matplotlib>=3.7", "pillow>=9"]
+paper = ["bctpy>=0.6", "networkx>=3.0", "matplotlib>=3.7", "pillow>=9"]
+dev = ["pytest>=7", "networkx>=3.0", "bctpy>=0.6"]
+
+[project.urls]
+Homepage = "https://github.com/Minarose/NetPiP"
+Source = "https://github.com/Minarose/NetPiP"
+Issues = "https://github.com/Minarose/NetPiP/issues"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+netpip = ["py.typed"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"

@@ -1,0 +1,22 @@
+{
+  "network": "hospital",
+  "title": "Hospital contact network",
+  "nodes": 75,
+  "edges": 135,
+  "adjacency_sha256": "e18743ffd4d93fdc6c417e7c1fc0906ad2e846d907b23dea0df691652226e946",
+  "attacks": 1000000000,
+  "seed": 2026092404,
+  "rng": "numpy.random.default_rng (PCG64), rng.permuted(np.tile(arange(N), (batch, 1)), axis=1)",
+  "batch": 10000,
+  "threads": 8,
+  "elapsed_seconds": 741.00875800004,
+  "snapshots": [
+    1000000,
+    10000000,
+    100000000,
+    500000000,
+    1000000000
+  ],
+  "note": "",
+  "attack_orders": "1-based node orders; Degree/Betweenness/PageRank have 500 tie-breaking orders (scores rounded to 12 decimals); orders are the exact ones behind Fig. 4."
+}

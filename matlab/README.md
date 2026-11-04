@@ -1,88 +1,53 @@
-# netpip — MATLAB toolbox
+# netpip for MATLAB
 
-A clean MATLAB API for **Participation in Percolation (PiP)**, mirroring the Python `netpip` package. This is the engine used to produce the manuscript results; the canonical Slurm/HPC driver lives in `scripts/2_pip_converge.m`, while this folder packages the same algorithm as a reusable, parameterized `+netpip` namespace you can drop into any MATLAB project.
-
-## Requirements
-
-- **MATLAB R2020b or newer** (tested on R2024b)
-- **Graph and Network Algorithms** (`graph`, `conncomp` — base MATLAB)
-- **Statistics and Machine Learning Toolbox** (only for `prctile`)
-- **Parallel Computing Toolbox** *(optional)* — needed only if you pass `'UseParfor', true`
-- **Brain Connectivity Toolbox** *(optional)* — only required for the benchmarking scripts in `../scripts/compare_pip_bct_percolation_*.m`
-
-## Install
-
-There is no `mltbx` install — this is a folder-based package. From your MATLAB session:
+The same PiP definitions as the Python toolbox, as a `+netpip` package.
 
 ```matlab
-addpath('/path/to/NetPiP/matlab');
-% optionally make permanent:
-% savepath
+addpath('path/to/NetPiP/matlab');
+A = double(myAdjacency);                     % binary, symmetric, zero diagonal
+result = netpip.run_pip(A, 1e6, 'Seed', 1, 'Checkpoints', [1e4 1e5]);
+scores = netpip.pip_scores(result.counts, result.hits, 'linear');
+[~, ranking] = sort(scores, 'descend');      % most critical nodes first
 ```
-
-You can then call any function as `netpip.<name>`.
-
-## Quickstart
-
-```matlab
-addpath('matlab');
-
-A = double(your_binary_symmetric_adjacency);     % N x N
-netpip.validate_adjacency(A, 'MinGiantFraction', 0.75);
-
-res = netpip.run_pip(A, ...
-    'MaxAttacks', 1e6, 'ChunkSize', 1e4, 'Seed', 42, ...
-    'EnforceHW95', false, 'Verbose', true);
-
-[order, peak_step, peak_amp] = netpip.tilted_peak_rank(res.node_P);
-pp  = netpip.percolation_point(A, order);
-hub = order(1:pp);                              % PiP hub set
-```
-
-A full runnable demo lives in [`examples/quickstart.m`](examples/quickstart.m).
-
-## Input contract
-
-`netpip.validate_adjacency` performs **read-only** checks on `A`. The matrix is never modified. `A` must already be:
-
-- 2D, square, `N >= 2`
-- finite (no `NaN` / `Inf`)
-- binary (entries `{0, 1}`)
-- symmetric (`A == A.'`)
-- zero-diagonal (`diag(A) == 0`)
-- sparse (density `< 1`, density `> 0`)
-- with a largest connected component of at least `MinGiantFraction * N` nodes (default 0.5)
-
-If any check fails, an `error('netpip:validation:<reason>', ...)` is raised.
-
-## Public API
 
 | Function | Purpose |
 |---|---|
-| `netpip.validate_adjacency(A, ...)` | Read-only input checks; returns descriptive `report` struct |
-| `netpip.run_pip(A, ...)` | Monte Carlo PiP convergence engine |
-| `netpip.wilson_half_width(part_counts, counts_per_step)` | Per-cell Wilson 95% half-widths |
-| `netpip.plateau_reached(attacks_hist, hw95_hist, ...)` | Convergence plateau diagnostic |
-| `netpip.tilted_peak_rank(node_P, ...)` | Time-tilted (`τ = S/6`) node ranking |
-| `netpip.percolation_point(A, attack_order)` | 1-based step where 2nd component first peaks |
+| `run_pip` | Sample random attacks; returns `counts`, `hits` and checkpoint snapshots (`'UseParfor', true` for parallel batches) |
+| `accumulate_orders` | PiP counts for given removal orders |
+| `percolation_event`, `slcc_trace` | Percolation point of one random attack |
+| `retained_steps`, `step_weights`, `weighted_surface`, `pip_scores` | PiP surface and node scores |
+| `rms_convergence` | RMS change between checkpoints (paper threshold 0.005) |
+| `component_trace`, `percolation_point`, `attack_orders`, `evaluate_attacks` | Targeted attacks and their outcome |
+| `critical_cluster` | Ward clustering of PiP profiles (needs the Statistics and Machine Learning Toolbox) |
+| `validate_adjacency`, `neighbor_lists` | Input checks and helpers |
 
-## How `node_P` is defined
+Requirements: MATLAB R2019b or newer; Statistics and Machine Learning Toolbox
+for `critical_cluster` only; Parallel Computing Toolbox only for `'UseParfor'`.
 
+## Differences from the Python toolbox
+
+* **Random numbers.** MATLAB's generator differs from NumPy's, so a MATLAB run
+  is statistically equivalent to, but not bit-identical with, the Python runs in
+  the paper. To reproduce the paper's counts exactly, use Python
+  (`reproduce/resample.py`) or load the saved counts in `results/paper_1B/`.
+* **Speed.** The MATLAB sampler is plain MATLAB code and much slower than the
+  Numba-compiled Python sampler. For budgets of 10^8 attacks or more, use Python
+  or `'UseParfor', true` on many cores.
+
+## Testing
+
+```matlab
+cd matlab
+run tests/test_against_python.m
 ```
-counts_per_step(p)   = # attacks whose percolation step (1-based) equals p
-part_counts(p, i)    = # attacks where (percolation step == p) AND
-                       (node i was among the first p nodes removed)
 
-node_P(p, i)         = part_counts(p, i) / counts_per_step(p)
-                     = P(node i was removed by step p | percolation step == p)
-```
+The test feeds both toolboxes the same fixed removal orders and the paper's
+saved language-network counts (reference outputs in `../tests/reference/`,
+written by `python tests/make_reference.py`) and checks events, counts,
+component traces, scores, attack outcomes, clustering and RMS values.
 
-This matches the `node_P` saved by `scripts/2_pip_converge.m` exactly (the underlying loop is the same; the wrapper just makes it parameterized and Slurm-free).
+> **Status:** the MATLAB code was written to match the Python reference and its
+> core kernel logic was checked line by line, but it has not yet been run in
+> MATLAB. Please run `tests/test_against_python.m` once and report any failure.
 
-## Reproducing the paper results
-
-The single-matrix MATLAB driver `scripts/5_graph_theory_avg.m` and the per-subject driver `scripts/5_graph_theory_per_subject.m` compute the BCT-based Degree / Betweenness / PageRank benchmarks reported in the manuscript. The HPC convergence wrapper `scripts/2_pip_converge.m` is the Slurm-aware production driver; `netpip.run_pip` is the same algorithm exposed as a reusable, interactive function.
-
-## License
-
-MIT. See `../LICENSE` at the repository root.
+`examples/quickstart.m` runs PiP on the karate club network.

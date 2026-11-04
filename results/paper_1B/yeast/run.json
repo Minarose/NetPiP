@@ -1,0 +1,22 @@
+{
+  "network": "yeast",
+  "title": "Yeast DNA-repair protein network",
+  "nodes": 254,
+  "edges": 1865,
+  "adjacency_sha256": "9eb565476f5f51c69cce61113d5b9971cc66ade01cbe27ceccab8849705b8e2a",
+  "attacks": 1000000000,
+  "seed": 2026092408,
+  "rng": "numpy.random.default_rng (PCG64), rng.permuted(np.tile(arange(N), (batch, 1)), axis=1)",
+  "batch": 10000,
+  "threads": 2,
+  "elapsed_seconds": 9127.06803254201,
+  "snapshots": [
+    1000000,
+    10000000,
+    100000000,
+    500000000,
+    1000000000
+  ],
+  "note": "The 1-million snapshot comes from a separate pilot run (seed 2026092408) and is used only as the first RMS checkpoint, as in the paper.",
+  "attack_orders": "1-based node orders; Degree/Betweenness/PageRank have 500 tie-breaking orders (scores rounded to 12 decimals); orders are the exact ones behind Fig. 4."
+}
