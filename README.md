@@ -44,7 +44,7 @@ This repository contains:
 | [`examples`](examples) | Run PiP on your own network: quick start and a full analysis script |
 | [`reproduce`](reproduce) | One command per paper figure and a check of every key number |
 | [`data`](data) | The six networks of the paper, their sources and licences, and a script that rebuilds them |
-| [`results/paper_1B`](results/paper_1B) | Saved 1-billion-attack PiP counts, checkpoints and attack orders |
+| [`results`](results) | Saved 1-billion-attack PiP counts, checkpoints and attack orders |
 | [`tests`](tests) | Unit tests, including an exact replay of the paper's sampling |
 | [`figures`](figures) | Images shown on this page, and the final paper figures in [`figures/paper`](figures/paper) |
 
@@ -91,7 +91,7 @@ time grows roughly with the number of nodes and edges.
 ## Reproducing the paper
 
 Everything is computed from the saved 1-billion-attack counts in
-`results/paper_1B/`, so it takes seconds rather than days:
+`results/`, so it takes seconds rather than days:
 
 ```bash
 python reproduce/run_all.py          # all numbers and figures -> reproduce/output/  (under a minute)

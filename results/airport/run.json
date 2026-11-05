@@ -11,6 +11,6 @@
   "threads": 8,
   "elapsed_seconds": 148060.980401375,
   "snapshots": [],
-  "note": "Airport counts are the 1-billion checkpoint of a 3-billion-attack run with the same seed; elapsed_seconds is for the full 3-billion run. Milestone snapshots are too large for git, so results/paper_1B/airport/rms.csv stores the RMS values computed from them.",
+  "note": "Airport counts are the 1-billion checkpoint of a 3-billion-attack run with the same seed; elapsed_seconds is for the full 3-billion run. Milestone snapshots are too large for git, so results/airport/rms.csv stores the RMS values computed from them.",
   "attack_orders": "1-based node orders; Degree/Betweenness/PageRank have 500 tie-breaking orders (scores rounded to 12 decimals); orders are the exact ones behind Fig. 4."
 }

@@ -43,8 +43,8 @@ SOURCES = {
             "BIOGRID-ORGANISM-5.0.261.tab3.zip",
         sha256="3c62cf57657b4f4d8c583717354518254d1788735613eaa530e6a4f4906a9338"),
 }
-# Adjacency fingerprints of the networks analysed in the paper (results/paper_1B/*/run.json).
-EXPECTED = {k: __import__("json").loads((ROOT / "results/paper_1B" / k / "run.json").read_text())["adjacency_sha256"]
+# Adjacency fingerprints of the networks analysed in the paper (results/*/run.json).
+EXPECTED = {k: __import__("json").loads((ROOT / "results" / k / "run.json").read_text())["adjacency_sha256"]
             for k in ["hospital", "airport", "yeast", "language", "watts_strogatz", "erdos_renyi"]}
 
 

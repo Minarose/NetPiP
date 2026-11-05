@@ -31,12 +31,12 @@ def main():
     np.savetxt(OUT / "karate_hits.csv", hits, fmt="%d", delimiter=",")
     trace_lcc, trace_slcc = netpip.component_trace(A, orders[0])
 
-    with np.load(ROOT / "results/paper_1B/language/counts.npz") as z:
+    with np.load(ROOT / "results/language/counts.npz") as z:
         lc, lh = z["counts"], z["hits"]
     np.savetxt(OUT / "language_counts.csv", lc, fmt="%d", delimiter=",")
     np.savetxt(OUT / "language_hits.csv", lh, fmt="%d", delimiter=",")
     snaps = {}
-    for p in sorted((ROOT / "results/paper_1B/language/snapshots").glob("*.npz")):
+    for p in sorted((ROOT / "results/language/snapshots").glob("*.npz")):
         with np.load(p) as z:
             snaps[int(p.stem)] = (z["counts"], z["hits"])
             np.savetxt(OUT / f"language_snapshot_{p.stem}_counts.csv", z["counts"], fmt="%d", delimiter=",")

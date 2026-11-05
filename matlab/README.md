@@ -29,7 +29,7 @@ for `critical_cluster` only; Parallel Computing Toolbox only for `'UseParfor'`.
 * **Random numbers.** MATLAB's generator differs from NumPy's, so a MATLAB run
   is statistically equivalent to, but not bit-identical with, the Python runs in
   the paper. To reproduce the paper's counts exactly, use Python
-  (`reproduce/resample.py`) or load the saved counts in `results/paper_1B/`.
+  (`reproduce/resample.py`) or load the saved counts in `results/`.
 * **Speed.** The MATLAB sampler is plain MATLAB code and much slower than the
   Numba-compiled Python sampler. For budgets of 10^8 attacks or more, use Python
   or `'UseParfor', true` on many cores.

@@ -160,13 +160,13 @@ def test_save_and_load(tmp_path):
     assert back.seed == 1 and 500 in back.snapshots
 
 
-@pytest.mark.skipif(not (ROOT / "results/paper_1B/language/snapshots/1000000.npz").exists(),
+@pytest.mark.skipif(not (ROOT / "results/language/snapshots/1000000.npz").exists(),
                     reason="paper results not present")
 def test_reproduces_paper_language_checkpoint():
     """Same seed and sampler as the paper: the first 1M attacks match the saved checkpoint exactly."""
     n = 66
     A = netpip.load_edge_list(ROOT / "data/networks/language/edges.csv", n_nodes=n)
     res = netpip.run_pip(A, 1_000_000, seed=2026092409)
-    with np.load(ROOT / "results/paper_1B/language/snapshots/1000000.npz") as z:
+    with np.load(ROOT / "results/language/snapshots/1000000.npz") as z:
         np.testing.assert_array_equal(res.counts, z["counts"])
         np.testing.assert_array_equal(res.hits, z["hits"])

@@ -31,7 +31,7 @@ python data/build_networks.py --source-dir /path/to/existing/files
 ```
 
 The script checks every rebuilt adjacency matrix against the SHA-256
-fingerprint of the network analysed in the paper (`results/paper_1B/*/run.json`)
+fingerprint of the network analysed in the paper (`results/*/run.json`)
 and warns if an upstream file has changed since. The hospital contact list must
 be downloaded by hand from the SocioPatterns page and saved as
 `data/raw/downloads/hospital_contacts.dat.gz`. The BioGRID archive is about

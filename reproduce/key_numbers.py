@@ -7,7 +7,7 @@ Checks (and prints) for each network:
     PageRank-ordered attacks, and PiP's reduction vs the best centrality (Fig. 4)
   * LCC area and removals to 10% LCC (Supplementary Table 1)
   * language network critical cluster (Fig. 5)
-Exits with an error if any value differs from results/paper_1B/reference_*.csv.
+Exits with an error if any value differs from results/reference_*.csv.
 
 Run:  python reproduce/key_numbers.py            (a few seconds)
       python reproduce/key_numbers.py --fresh-centralities   also recompute centrality orders from scratch

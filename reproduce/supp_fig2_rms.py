@@ -2,7 +2,7 @@
 
 RMS values are recomputed from the saved checkpoint counts, except for the
 airport network, whose checkpoint matrices are too large for git (its values
-are read from results/paper_1B/airport/rms.csv). Dashed line: threshold 0.005.
+are read from results/airport/rms.csv). Dashed line: threshold 0.005.
 
 Run:  python reproduce/supp_fig2_rms.py
 """

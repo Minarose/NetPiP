@@ -15,7 +15,7 @@ sys.path.insert(0, str(ROOT / "src"))  # use the repository's netpip without ins
 import netpip  # noqa: E402
 
 DATA = ROOT / "data" / "networks"
-RESULTS = ROOT / "results" / "paper_1B"
+RESULTS = ROOT / "results"
 OUT = ROOT / "reproduce" / "output"
 
 # Figure 2 order. rule/basis follow the Methods: the hospital network keeps all
