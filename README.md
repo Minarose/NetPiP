@@ -1,5 +1,11 @@
 # NetPiP: Participation in Percolation
 
+<p align="center">
+  <img src="figures/pip_surface_rotation.gif" alt="Rotating 360 view of the group-average Participation-in-Percolation surface" width="640">
+  <br>
+  <em>Group-average PiP surface (n = 19) of the expressive language network.</em>
+</p>
+
 **Participation in Percolation (PiP): a probabilistic metric for identifying critical nodes in complex networks**
 
 Minarose M. Ismail, Brady J. Williamson, Hansel M. Greiner, Darren S. Kadis
@@ -12,6 +18,17 @@ how often each node has been removed by then. Sampling replaces the impossible
 enumeration of all N! orders: estimates stabilise after a vanishingly small
 fraction of them.
 
+## Networks tested
+
+<p align="center">
+  <img src="figures/networks_tested.png" alt="The six networks analysed in the paper" width="900">
+  <br>
+  <em>The six networks analysed in the paper: (a) hospital ward contacts, (b) global airports,
+  (c) yeast DNA-repair protein interactions, (d) human MEG expressive language network,
+  (e) Watts–Strogatz small world, (f) Erdős–Rényi random graph. Data and sources are in
+  <a href="data"><code>data/</code></a>.</em>
+</p>
+
 This repository contains:
 
 | Folder | What it is |
@@ -23,6 +40,7 @@ This repository contains:
 | [`data`](data) | The six networks of the paper, their sources and licences, and a script that rebuilds them |
 | [`results/paper_1B`](results/paper_1B) | Saved 1-billion-attack PiP counts, checkpoints and attack orders |
 | [`tests`](tests) | Unit tests, including an exact replay of the paper's sampling |
+| [`figures`](figures) | Images shown on this page |
 
 ## Installation
 
