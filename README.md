@@ -46,7 +46,7 @@ This repository contains:
 | [`data`](data) | The six networks of the paper, their sources and licences, and a script that rebuilds them |
 | [`results/paper_1B`](results/paper_1B) | Saved 1-billion-attack PiP counts, checkpoints and attack orders |
 | [`tests`](tests) | Unit tests, including an exact replay of the paper's sampling |
-| [`figures`](figures) | Images shown on this page |
+| [`figures`](figures) | Images shown on this page, and the final paper figures in [`figures/paper`](figures/paper) |
 
 ## Installation
 
@@ -107,6 +107,9 @@ python reproduce/run_all.py          # all numbers and figures -> reproduce/outp
 | `reproduce/supp_fig2_rms.py` | Supplementary Fig. 2, RMS convergence |
 | `reproduce/supp_fig3_lcc.py` | Supplementary Fig. 3 and Table 1, LCC/SLCC trajectories |
 | `reproduce/resample.py` | Reruns the sampling with the paper's seeds and checks it against the saved checkpoints |
+
+The final figures as published with the paper (Figs 1–5 and Supplementary
+Figs 1–3) are saved as PNGs in [`figures/paper`](figures/paper).
 
 Figures 1 and 2 are schematic and network drawings assembled for the paper
 (Fig. 2 panels were drawn with NetworkX/matplotlib as described in Methods) and
