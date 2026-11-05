@@ -3,14 +3,20 @@
 <p align="center">
   <img src="figures/pip_surface_rotation.gif" alt="Rotating 360 view of the group-average Participation-in-Percolation surface" width="640">
   <br>
-  <em>Group-average PiP surface (n = 19) of the expressive language network.</em>
+  <em>Group-average PiP surface of the expressive language network.</em>
 </p>
 
 **Participation in Percolation (PiP): a probabilistic metric for identifying critical nodes in complex networks**
 
-Minarose M. Ismail, Brady J. Williamson, Hansel M. Greiner, Darren S. Kadis
+Minarose M. Ismail¹,², Brady J. Williamson³, Hansel M. Greiner⁴, Darren S. Kadis¹,²
 
-PiP asks which nodes drive a network to break apart. It samples many uniformly
+¹ Department of Physiology, University of Toronto  
+² Neurosciences and Mental Health, Hospital for Sick Children, Toronto  
+³ University of Cincinnati College of Medicine, Department of Radiology  
+⁴ Department of Pediatrics, College of Medicine, University of Cincinnati
+
+PiP is a probabilistic metric of how much each node's removal drives a network
+to break apart. It samples many uniformly
 random node-removal orders ("attacks"), finds the step at which each attack
 reaches its **percolation point** (the first maximum of the second-largest
 connected component, when a substantial piece first splits off), and estimates
